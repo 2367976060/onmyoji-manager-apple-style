@@ -1,6 +1,6 @@
 // ==================== IndexedDB 数据库层 ====================
 const DB_NAME = 'OnmyojiManagerDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORES = {
     USERS: 'users',
     PENDING_REG: 'pending_registrations',
@@ -204,19 +204,80 @@ async function getPendingRegistrations() {
     return await dbGetAll(STORES.PENDING_REG);
 }
 async function approveRegistration(regId, approve) {
-    const pending = await dbGet(STORES.PENDING_REG, regId);
-    if (!pending) return false;
-    if (approve) {
+    try {
+        const pending = await dbGet(STORES.PENDING_REG, regId);
+        if (!pending) {
+            showToast('申请记录不存在');
+            return false;
+        }
+        
+        if (approve) {
+            // 先检查用户是否已存在
+            const existing = await dbGet(STORES.USERS, pending.username);
+            if (existing) {
+                showToast('用户名已存在');
+                await dbDelete(STORES.PENDING_REG, regId);
+                return false;
+            }
+            
+            // 创建用户
+            await dbAdd(STORES.USERS, {
+                username: pending.username,
+                password: pending.password,
+                isAdmin: false,
+                createTime: new Date().toISOString()
+            });
+            
+            // 验证用户是否创建成功
+            const created = await dbGet(STORES.USERS, pending.username);
+            if (!created) {
+                showToast('用户创建失败，请重试');
+                return false;
+            }
+            
+            // 初始化用户数据
+            await initUserData(pending.username);
+        }
+        
+        await dbDelete(STORES.PENDING_REG, regId);
+        return true;
+    } catch (e) {
+        console.error('审批错误:', e);
+        showToast('审批失败: ' + e.message);
+        return false;
+    }
+}
+
+async function adminAddUser(username, password, isAdmin) {
+    try {
+        const existing = await dbGet(STORES.USERS, username);
+        if (existing) {
+            showToast('用户名已存在');
+            return false;
+        }
+        
         await dbAdd(STORES.USERS, {
-            username: pending.username,
-            password: pending.password,
-            isAdmin: false,
+            username,
+            password,
+            isAdmin: isAdmin || false,
             createTime: new Date().toISOString()
         });
-        await initUserData(pending.username);
+        
+        // 验证用户是否创建成功
+        const created = await dbGet(STORES.USERS, username);
+        if (!created) {
+            showToast('用户创建失败，请重试');
+            return false;
+        }
+        
+        await initUserData(username);
+        showToast('用户创建成功');
+        return true;
+    } catch (e) {
+        console.error('创建用户错误:', e);
+        showToast('创建用户失败: ' + e.message);
+        return false;
     }
-    await dbDelete(STORES.PENDING_REG, regId);
-    return true;
 }
 const DEFAULT_SHIKIGAMI = [
     { name: '阿修罗', icon: '' },
@@ -1019,44 +1080,6 @@ function clearAllData() {
 
 // ==================== 管理员用户管理功能 ====================
 
-async function adminAddUser(username, password, isAdmin) {
-    try {
-        const existing = await dbGet(STORES.USERS, username);
-        if (existing) {
-            showToast('用户名已存在');
-            return false;
-        }
-        await dbAdd(STORES.USERS, {
-            username,
-            password,
-            isAdmin: isAdmin || false,
-            createTime: new Date().toISOString()
-        });
-        await initUserData(username);
-        showToast('用户创建成功');
-        return true;
-    } catch (e) {
-        console.error(e);
-        showToast('创建用户失败');
-        return false;
-    }
-}
-async function getAllUsers() {
-    return await dbGetAll(STORES.USERS);
-}
-async function adminChangeRole(username, isAdmin) {
-    try {
-        const user = await dbGet(STORES.USERS, username);
-        if (!user) {
-            showToast('用户不存在');
-            return false;
-        }
-        user.isAdmin = isAdmin;
-        await dbPut(STORES.USERS, user);
-        showToast('权限修改成功');
-        return true;
-    } catch (e) {
-        console.error(e);
         showToast('修改权限失败');
         return false;
     }
