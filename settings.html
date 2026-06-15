@@ -13,6 +13,33 @@
     <div class="container">
         <section class="view active">
             <h1 class="ios-title">设置</h1>
+            
+            <!-- 管理员专属功能区 -->
+            <div class="ios-group-title" id="adminSectionTitle" style="display:none;">👑 管理员功能</div>
+            <div class="ios-group" id="adminSection" style="display:none;">
+                <div class="ios-item" onclick="openApprovalModal()">
+                    <div class="ios-item-content">
+                        <div class="ios-item-title" style="color:var(--ios-orange);">用户注册审批</div>
+                        <div class="ios-item-subtitle">审批新用户注册申请</div>
+                    </div>
+                    <span class="ios-item-arrow">›</span>
+                </div>
+                <div class="ios-item" onclick="openAddUserModal()">
+                    <div class="ios-item-content">
+                        <div class="ios-item-title" style="color:var(--ios-blue);">手动添加用户</div>
+                        <div class="ios-item-subtitle">直接创建用户账号</div>
+                    </div>
+                    <span class="ios-item-arrow">›</span>
+                </div>
+                <div class="ios-item" onclick="openUserManageModal()">
+                    <div class="ios-item-content">
+                        <div class="ios-item-title" style="color:var(--ios-green);">用户列表管理</div>
+                        <div class="ios-item-subtitle">修改权限、重置密码、删除用户</div>
+                    </div>
+                    <span class="ios-item-arrow">›</span>
+                </div>
+            </div>
+            
             <div class="ios-group-title">通用设置</div>
             <div class="ios-group">
                 <div class="ios-item" onclick="openDefaultSettings()">
@@ -55,7 +82,7 @@
                     <span class="ios-item-arrow">›</span>
                 </div>
             </div>
-            <div class="ios-group-title">危险操作</div>
+            <div class="ios-group-title">账号操作</div>
             <div class="ios-group">
                 <div class="ios-item" onclick="logout()">
                     <div class="ios-item-content">
@@ -98,6 +125,7 @@
         </a>
     </nav>
 
+    <!-- 用户注册审批弹窗 -->
     <div class="ios-modal" id="approvalModal">
         <div class="ios-modal-content">
             <div class="ios-modal-header">
@@ -105,6 +133,73 @@
                 <button class="ios-modal-close" onclick="closeModal('approvalModal')">×</button>
             </div>
             <div id="approvalList"></div>
+        </div>
+    </div>
+
+    <!-- 手动添加用户弹窗 -->
+    <div class="ios-modal" id="addUserModal">
+        <div class="ios-modal-content">
+            <div class="ios-modal-header">
+                <h3 class="ios-modal-title">手动添加用户</h3>
+                <button class="ios-modal-close" onclick="closeModal('addUserModal')">×</button>
+            </div>
+            <form id="addUserForm">
+                <div class="ios-form-group">
+                    <label class="ios-form-label">用户名/账号</label>
+                    <input type="text" class="ios-form-input" id="newUserUsername" required placeholder="输入用户名">
+                </div>
+                <div class="ios-form-group">
+                    <label class="ios-form-label">密码</label>
+                    <input type="password" class="ios-form-input" id="newUserPassword" required placeholder="输入密码">
+                </div>
+                <div class="ios-form-group">
+                    <label class="ios-form-label">确认密码</label>
+                    <input type="password" class="ios-form-input" id="newUserPassword2" required placeholder="再次输入密码">
+                </div>
+                <div class="ios-form-group">
+                    <label class="ios-form-label">用户权限</label>
+                    <select class="ios-form-select" id="newUserRole">
+                        <option value="user">普通用户</option>
+                        <option value="admin">管理员</option>
+                    </select>
+                </div>
+                <div class="ios-modal-footer">
+                    <button type="button" class="ios-btn ios-btn-gray" onclick="closeModal('addUserModal')">取消</button>
+                    <button type="submit" class="ios-btn ios-btn-primary">创建用户</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 用户列表管理弹窗 -->
+    <div class="ios-modal" id="userManageModal">
+        <div class="ios-modal-content">
+            <div class="ios-modal-header">
+                <h3 class="ios-modal-title">用户列表管理</h3>
+                <button class="ios-modal-close" onclick="closeModal('userManageModal')">×</button>
+            </div>
+            <div id="userManageList"></div>
+        </div>
+    </div>
+
+    <!-- 重置密码弹窗 -->
+    <div class="ios-modal" id="resetPasswordModal">
+        <div class="ios-modal-content">
+            <div class="ios-modal-header">
+                <h3 class="ios-modal-title">重置用户密码</h3>
+                <button class="ios-modal-close" onclick="closeModal('resetPasswordModal')">×</button>
+            </div>
+            <form id="resetPasswordForm">
+                <input type="hidden" id="resetUsername">
+                <div class="ios-form-group">
+                    <label class="ios-form-label">新密码</label>
+                    <input type="password" class="ios-form-input" id="resetNewPassword" required placeholder="输入新密码">
+                </div>
+                <div class="ios-modal-footer">
+                    <button type="button" class="ios-btn ios-btn-gray" onclick="closeModal('resetPasswordModal')">取消</button>
+                    <button type="submit" class="ios-btn ios-btn-primary">确认重置</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -200,9 +295,69 @@
 
     <script src="app.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            // 先检查认证
             checkAuth();
+            
+            // 等待currentUser被设置
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // 检查是否是管理员，显示管理员功能区
+            if (currentUser && currentUser.isAdmin) {
+                document.getElementById('adminSectionTitle').style.display = 'block';
+                document.getElementById('adminSection').style.display = 'block';
+            }
+            
             document.querySelectorAll('.ios-tab-item')[4].classList.add('active');
+            
+            // 绑定添加用户表单
+            const addUserForm = document.getElementById('addUserForm');
+            if (addUserForm) {
+                addUserForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const username = document.getElementById('newUserUsername').value.trim();
+                    const password = document.getElementById('newUserPassword').value;
+                    const password2 = document.getElementById('newUserPassword2').value;
+                    const role = document.getElementById('newUserRole').value;
+                    
+                    if (password !== password2) {
+                        showToast('两次输入的密码不一致');
+                        return;
+                    }
+                    if (password.length < 6) {
+                        showToast('密码长度至少6位');
+                        return;
+                    }
+                    
+                    const success = await adminAddUser(username, password, role === 'admin');
+                    if (success) {
+                        closeModal('addUserModal');
+                        addUserForm.reset();
+                    }
+                });
+            }
+            
+            // 绑定重置密码表单
+            const resetPasswordForm = document.getElementById('resetPasswordForm');
+            if (resetPasswordForm) {
+                resetPasswordForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const username = document.getElementById('resetUsername').value;
+                    const newPassword = document.getElementById('resetNewPassword').value;
+                    
+                    if (newPassword.length < 6) {
+                        showToast('密码长度至少6位');
+                        return;
+                    }
+                    
+                    const success = await adminResetPassword(username, newPassword);
+                    if (success) {
+                        closeModal('resetPasswordModal');
+                        resetPasswordForm.reset();
+                        await renderUserManageList();
+                    }
+                });
+            }
         });
     </script>
 </body>

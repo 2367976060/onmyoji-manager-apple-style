@@ -1183,3 +1183,192 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
+// ==================== 管理员用户管理功能 ====================
+
+async function adminAddUser(username, password, isAdmin) {
+    try {
+        const existing = await dbGet(STORES.USERS, username);
+        if (existing) {
+            showToast('用户名已存在');
+            return false;
+        }
+        
+        await dbAdd(STORES.USERS, {
+            username,
+            password,
+            isAdmin: isAdmin || false,
+            createTime: new Date().toISOString()
+        });
+        
+        await initUserData(username);
+        showToast('用户创建成功');
+        return true;
+    } catch (e) {
+        console.error(e);
+        showToast('创建用户失败');
+        return false;
+    }
+}
+
+async function getAllUsers() {
+    return await dbGetAll(STORES.USERS);
+}
+
+async function adminChangeRole(username, isAdmin) {
+    try {
+        const user = await dbGet(STORES.USERS, username);
+        if (!user) {
+            showToast('用户不存在');
+            return false;
+        }
+        
+        user.isAdmin = isAdmin;
+        await dbPut(STORES.USERS, user);
+        showToast('权限修改成功');
+        return true;
+    } catch (e) {
+        console.error(e);
+        showToast('修改权限失败');
+        return false;
+    }
+}
+
+async function adminResetPassword(username, newPassword) {
+    try {
+        const user = await dbGet(STORES.USERS, username);
+        if (!user) {
+            showToast('用户不存在');
+            return false;
+        }
+        
+        user.password = newPassword;
+        await dbPut(STORES.USERS, user);
+        showToast('密码重置成功');
+        return true;
+    } catch (e) {
+        console.error(e);
+        showToast('重置密码失败');
+        return false;
+    }
+}
+
+async function adminDeleteUser(username) {
+    if (!confirm(`确定要删除用户 ${username} 吗？此操作不可恢复！`)) {
+        return false;
+    }
+    
+    try {
+        // 删除用户账号
+        await dbDelete(STORES.USERS, username);
+        
+        // 删除用户的所有数据
+        const stores = [STORES.ACCOUNTS, STORES.SERVERS, STORES.SHIKIGAMI, STORES.SETTINGS, STORES.RECYCLE, STORES.GRIND_LOG];
+        for (const store of stores) {
+            const userData = await dbGetByIndex(store, 'userId', username);
+            for (const item of userData) {
+                await dbDelete(store, item.id);
+            }
+        }
+        
+        showToast('用户删除成功');
+        return true;
+    } catch (e) {
+        console.error(e);
+        showToast('删除用户失败');
+        return false;
+    }
+}
+
+function openAddUserModal() {
+    document.getElementById('addUserForm').reset();
+    openModal('addUserModal');
+}
+
+async function openUserManageModal() {
+    await renderUserManageList();
+    openModal('userManageModal');
+}
+
+async function renderUserManageList() {
+    const users = await getAllUsers();
+    const container = document.getElementById('userManageList');
+    if (!container) return;
+    
+    container.innerHTML = users.map(u => `
+        <div class="ios-item">
+            <div class="ios-item-content">
+                <div class="ios-item-title">${u.username}</div>
+                <div class="ios-item-subtitle">
+                    ${u.isAdmin ? '<span style=\"color:var(--ios-orange);font-weight:600;\">管理员</span>' : '普通用户'}
+                     · 注册于 ${new Date(u.createTime).toLocaleDateString()}
+                </div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="ios-btn ios-btn-primary ios-btn-sm" onclick="toggleUserRole('${u.username}', ${!u.isAdmin})">
+                    ${u.isAdmin ? '降为用户' : '设为管理员'}
+                </button>
+                <button class="ios-btn ios-btn-gray ios-btn-sm" onclick="openResetPasswordModal('${u.username}')">重置密码</button>
+                <button class="ios-btn ios-btn-danger ios-btn-sm" onclick="deleteUserConfirm('${u.username}')">删除</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function toggleUserRole(username, isAdmin) {
+    const success = await adminChangeRole(username, isAdmin);
+    if (success) {
+        await renderUserManageList();
+    }
+}
+
+function openResetPasswordModal(username) {
+    document.getElementById('resetUsername').value = username;
+    document.getElementById('resetNewPassword').value = '';
+    openModal('resetPasswordModal');
+}
+
+async function deleteUserConfirm(username) {
+    const success = await adminDeleteUser(username);
+    if (success) {
+        await renderUserManageList();
+    }
+}
+
+async function openApprovalModal() {
+    await renderApprovalList();
+    openModal('approvalModal');
+}
+
+async function renderApprovalList() {
+    const pending = await getPendingRegistrations();
+    const container = document.getElementById('approvalList');
+    if (!container) return;
+    
+    container.innerHTML = pending.length ?
+        pending.map(p => `
+            <div class="ios-item">
+                <div class="ios-item-content">
+                    <div class="ios-item-title">${p.username}</div>
+                    <div class="ios-item-subtitle">
+                        申请时间：${new Date(p.submitTime).toLocaleString()}
+                        ${p.contact ? ' | 联系：' + p.contact : ''}
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <button class="ios-btn ios-btn-success ios-btn-sm" onclick="approveReg('${p.id}', true)">同意</button>
+                    <button class="ios-btn ios-btn-danger ios-btn-sm" onclick="approveReg('${p.id}', false)">驳回</button>
+                </div>
+            </div>
+        `).join('') : '<div class="empty-text" style="text-align:center;padding:20px;">暂无待审批申请</div>';
+}
+
+async function approveReg(id, approve) {
+    const msg = approve ? '确定通过此注册申请吗？' : '确定驳回此注册申请吗？';
+    if (!confirm(msg)) return;
+    
+    await approveRegistration(id, approve);
+    await renderApprovalList();
+    showToast(approve ? '已通过' : '已驳回');
+}
+
