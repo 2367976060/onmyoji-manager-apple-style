@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>阴阳师账号管理器 - 区服列表</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="safe-top"></div>
+    <div class="container">
+        <section class="view active">
+            <h1 class="ios-title">账号库</h1>
+            <div class="ios-group-title">我的区服</div>
+            <div class="ios-group" id="serverList"></div>
+        </section>
+    </div>
+    
+    <nav class="ios-tab-bar">
+        <a class="ios-tab-item" onclick="event.preventDefault();navigateTo('home')">
+            <span class="ios-tab-icon">🏠</span>
+            <span class="ios-tab-label">首页</span>
+        </a>
+        <a class="ios-tab-item active" onclick="event.preventDefault();navigateTo('accounts')">
+            <span class="ios-tab-icon">📦</span>
+            <span class="ios-tab-label">账号库</span>
+        </a>
+        <a class="ios-tab-item" onclick="event.preventDefault();navigateTo('grind')">
+            <span class="ios-tab-icon">⚔️</span>
+            <span class="ios-tab-label">刷号</span>
+        </a>
+        <a class="ios-tab-item" onclick="event.preventDefault();navigateTo('sales')">
+            <span class="ios-tab-icon">💰</span>
+            <span class="ios-tab-label">销售</span>
+        </a>
+        <a class="ios-tab-item" onclick="event.preventDefault();navigateTo('settings')">
+            <span class="ios-tab-icon">⚙️</span>
+            <span class="ios-tab-label">设置</span>
+        </a>
+    </nav>
+
+    <button class="fab" onclick="openAddServerModal()">+</button>
+
+    <div class="ios-action-sheet" id="serverActionSheet">
+        <div class="ios-action-sheet-content">
+            <div class="ios-action-sheet-item" onclick="editServerFromSheet()">编辑</div>
+            <div class="ios-action-sheet-item danger" onclick="deleteServerFromSheet()">删除</div>
+            <div class="ios-action-sheet-cancel" onclick="closeActionSheet()">取消</div>
+        </div>
+    </div>
+
+    <div class="ios-modal" id="serverModal">
+        <div class="ios-modal-content">
+            <div class="ios-modal-header">
+                <h3 class="ios-modal-title" id="serverModalTitle">添加区服</h3>
+                <button class="ios-modal-close" onclick="closeModal('serverModal')">×</button>
+            </div>
+            <form id="serverForm">
+                <input type="hidden" id="editServerId">
+                <div class="ios-form-group">
+                    <label class="ios-form-label">区服名称</label>
+                    <input type="text" class="ios-form-input" id="serverName" required placeholder="如：春之樱">
+                </div>
+                <div class="ios-form-group">
+                    <label class="ios-form-label">开服时间</label>
+                    <input type="date" class="ios-form-input" id="serverOpenTime">
+                </div>
+                <div class="ios-modal-footer">
+                    <button type="button" class="ios-btn ios-btn-gray" onclick="closeModal('serverModal')">取消</button>
+                    <button type="submit" class="ios-btn ios-btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initData();
+            renderServerList();
+            // 设置导航激活状态
+            document.querySelectorAll('.ios-tab-item')[1].classList.add('active');
+        });
+    </script>
+</body>
+</html>

@@ -5,45 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>阴阳师账号管理器 - 首页</title>
+    <title>阴阳师账号管理器 - 刷号管理</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="safe-top"></div>
     <div class="container">
         <section class="view active">
-            <h1 class="ios-title">概览</h1>
+            <h1 class="ios-title">刷号管理</h1>
             <div class="ios-stats-grid">
                 <div class="ios-stat-card">
-                    <div class="ios-stat-value blue" id="statTotal">0</div>
-                    <div class="ios-stat-label">账号总数</div>
-                </div>
-                <div class="ios-stat-card">
-                    <div class="ios-stat-value red" id="statTodo">0</div>
+                    <div class="ios-stat-value red" id="grindTodo">0</div>
                     <div class="ios-stat-label">今日待刷</div>
                 </div>
-                <div class="ios-stat-card">
-                    <div class="ios-stat-value green" id="statLevel40">0</div>
-                    <div class="ios-stat-label">已达40级</div>
-                </div>
                 <div class="ios-stat-card clickable" onclick="showGrindDetail()">
-                    <div class="ios-stat-value green" id="statUnder40">0</div>
+                    <div class="ios-stat-value green" id="grindDone">0</div>
                     <div class="ios-stat-label">今日已刷</div>
                 </div>
             </div>
-            <div class="ios-card">
-                <div style="font-size:19px;font-weight:700;margin-bottom:14px;">🏆 区服库存排行 Top3</div>
-                <div id="serverRankList"></div>
-            </div>
-            <div class="ios-card">
-                <div style="font-size:19px;font-weight:700;margin-bottom:14px;">🎭 式神速查</div>
-                <div class="shikigami-grid" id="shikigamiQuick"></div>
-            </div>
+            <div id="grindList"></div>
         </section>
     </div>
     
     <nav class="ios-tab-bar">
-        <a class="ios-tab-item active" onclick="event.preventDefault();navigateTo('home')">
+        <a class="ios-tab-item" onclick="event.preventDefault();navigateTo('home')">
             <span class="ios-tab-icon">🏠</span>
             <span class="ios-tab-label">首页</span>
         </a>
@@ -51,7 +36,7 @@
             <span class="ios-tab-icon">📦</span>
             <span class="ios-tab-label">账号库</span>
         </a>
-        <a class="ios-tab-item" onclick="event.preventDefault();navigateTo('grind')">
+        <a class="ios-tab-item active" onclick="event.preventDefault();navigateTo('grind')">
             <span class="ios-tab-icon">⚔️</span>
             <span class="ios-tab-label">刷号</span>
         </a>
@@ -75,25 +60,15 @@
         </div>
     </div>
 
-    <div class="ios-modal" id="shikigamiAccountsModal">
-        <div class="ios-modal-content">
-            <div class="ios-modal-header">
-                <h3 class="ios-modal-title" id="shikigamiAccountsTitle">拥有该式神的账号</h3>
-                <button class="ios-modal-close" onclick="closeModal('shikigamiAccountsModal')">×</button>
-            </div>
-            <div id="shikigamiAccountsList"></div>
-        </div>
-    </div>
-
     <div class="toast" id="toast"></div>
 
     <script src="app.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             initData();
-            renderHome();
+            renderGrind();
             // 设置导航激活状态
-            document.querySelectorAll('.ios-tab-item')[0].classList.add('active');
+            document.querySelectorAll('.ios-tab-item')[2].classList.add('active');
         });
     </script>
 </body>

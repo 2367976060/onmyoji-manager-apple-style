@@ -1,562 +1,890 @@
-// 数据存储
-class StorageManager {
-    static STORAGE_KEYS = {
-        ACCOUNTS: 'onmyoji_accounts',
-        SHIKIGAMI: 'onmyoji_shikigami'
-    };
-
-    static getAccounts() {
-        const data = localStorage.getItem(this.STORAGE_KEYS.ACCOUNTS);
-        return data ? JSON.parse(data) : [];
-    }
-
-    static saveAccounts(accounts) {
-        localStorage.setItem(this.STORAGE_KEYS.ACCOUNTS, JSON.stringify(accounts));
-    }
-
-    static getShikigami() {
-        const data = localStorage.getItem(this.STORAGE_KEYS.SHIKIGAMI);
-        return data ? JSON.parse(data) : [];
-    }
-
-    static saveShikigami(shikigami) {
-        localStorage.setItem(this.STORAGE_KEYS.SHIKIGAMI, JSON.stringify(shikigami));
-    }
-
-    static generateId() {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2);
-    }
-}
-
-// 账号管理
-class AccountManager {
-    static getAll() {
-        return StorageManager.getAccounts();
-    }
-
-    static add(account) {
-        const accounts = this.getAll();
-        account.id = StorageManager.generateId();
-        account.createdAt = new Date().toISOString();
-        accounts.push(account);
-        StorageManager.saveAccounts(accounts);
-        return account;
-    }
-
-    static update(id, updatedData) {
-        const accounts = this.getAll();
-        const index = accounts.findIndex(a => a.id === id);
-        if (index !== -1) {
-            accounts[index] = { ...accounts[index], ...updatedData };
-            StorageManager.saveAccounts(accounts);
-            return accounts[index];
+const STORAGE = {
+            ACCOUNTS: 'onmyoji_accounts',
+            SERVERS: 'onmyoji_servers',
+            SHIKIGAMI: 'onmyoji_shikigami',
+            SETTINGS: 'onmyoji_settings',
+            RECYCLE: 'onmyoji_recycle',
+            GRIND_LOG: 'onmyoji_grind_log'
+        };
+        const DEFAULT_SHIKIGAMI = [
+            { name: '阿修罗', icon: '' },
+            { name: '因幡辉夜姬', icon: '' },
+            { name: '不见岳', icon: '' },
+            { name: '须佐之男', icon: '' },
+            { name: '神堕八岐大蛇', icon: '' },
+            { name: '季', icon: '' },
+            { name: '禅心云外镜', icon: '' },
+            { name: '天照', icon: '' }
+        ];
+        const DEFAULT_SERVERS = [
+            { name: '春之樱', openTime: '2016-09-09' },
+            { name: '夏之蝉', openTime: '2016-09-09' },
+            { name: '秋之枫', openTime: '2016-09-09' },
+            { name: '冬之雪', openTime: '2016-09-09' },
+            { name: '相伴长情', openTime: '2017-01-01' }
+        ];
+        let currentView = 'home';
+        let selectedServerId = '';
+        let actionSheetServerId = '';
+        let viewMode = localStorage.getItem('account_view_mode') || 'list';
+        let newShikigamiIconData = '';
+        let editShikigamiIconData = '';
+        function initData() {
+            if (!localStorage.getItem(STORAGE.SETTINGS)) {
+                localStorage.setItem(STORAGE.SETTINGS, JSON.stringify({
+                    defaultPassword: '147258369Hh',
+                    phoneList: []
+                }));
+            }
+            if (!localStorage.getItem(STORAGE.SERVERS)) {
+                localStorage.setItem(STORAGE.SERVERS, JSON.stringify(
+                    DEFAULT_SERVERS.map((s, i) => ({ id: generateId(), ...s, sort: i }))
+                ));
+            }
+            if (!localStorage.getItem(STORAGE.SHIKIGAMI)) {
+                localStorage.setItem(STORAGE.SHIKIGAMI, JSON.stringify(
+                    DEFAULT_SHIKIGAMI.map(s => ({ id: generateId(), ...s }))
+                ));
+            }
+            if (!localStorage.getItem(STORAGE.ACCOUNTS)) {
+                localStorage.setItem(STORAGE.ACCOUNTS, JSON.stringify([]));
+            }
+            if (!localStorage.getItem(STORAGE.RECYCLE)) {
+                localStorage.setItem(STORAGE.RECYCLE, JSON.stringify([]));
+            }
+            if (!localStorage.getItem(STORAGE.GRIND_LOG)) {
+                localStorage.setItem(STORAGE.GRIND_LOG, JSON.stringify([]));
+            }
         }
-        return null;
-    }
-
-    static delete(id) {
-        const accounts = this.getAll().filter(a => a.id !== id);
-        StorageManager.saveAccounts(accounts);
-        // 同时删除该账号下的式神
-        const shikigami = ShikigamiManager.getAll().filter(s => s.accountId !== id);
-        StorageManager.saveShikigami(shikigami);
-    }
-
-    static getById(id) {
-        return this.getAll().find(a => a.id === id);
-    }
-
-    static getStats() {
-        const accounts = this.getAll();
-        const totalAccounts = accounts.length;
-        const avgLevel = totalAccounts > 0 
-            ? Math.round(accounts.reduce((sum, a) => sum + (parseInt(a.level) || 0), 0) / totalAccounts) 
-            : 0;
-        const totalJade = accounts.reduce((sum, a) => sum + (parseInt(a.jade) || 0), 0);
-        const totalGold = accounts.reduce((sum, a) => sum + (parseInt(a.gold) || 0), 0);
-        
-        return { totalAccounts, avgLevel, totalJade, totalGold };
-    }
-}
-
-// 式神管理
-class ShikigamiManager {
-    static getAll() {
-        return StorageManager.getShikigami();
-    }
-
-    static getByAccountId(accountId) {
-        return this.getAll().filter(s => s.accountId === accountId);
-    }
-
-    static add(shikigami) {
-        const all = this.getAll();
-        shikigami.id = StorageManager.generateId();
-        shikigami.createdAt = new Date().toISOString();
-        all.push(shikigami);
-        StorageManager.saveShikigami(all);
-        return shikigami;
-    }
-
-    static update(id, updatedData) {
-        const all = this.getAll();
-        const index = all.findIndex(s => s.id === id);
-        if (index !== -1) {
-            all[index] = { ...all[index], ...updatedData };
-            StorageManager.saveShikigami(all);
-            return all[index];
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
         }
-        return null;
-    }
-
-    static delete(id) {
-        const all = this.getAll().filter(s => s.id !== id);
-        StorageManager.saveShikigami(all);
-    }
-
-    static getById(id) {
-        return this.getAll().find(s => s.id === id);
-    }
-}
-
-// UI 渲染
-class UIRenderer {
-    static renderAccounts(searchQuery = '') {
-        const accounts = AccountManager.getAll();
-        const filteredAccounts = searchQuery 
-            ? accounts.filter(a => a.name.toLowerCase().includes(searchQuery.toLowerCase()))
-            : accounts;
-        
-        const container = document.getElementById('accountList');
-        
-        if (filteredAccounts.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">👤</div>
-                    <p>${searchQuery ? '未找到匹配的账号' : '暂无账号，点击上方按钮添加'}</p>
-                </div>
-            `;
-            return;
+        function getData(key) {
+            return JSON.parse(localStorage.getItem(key) || '[]');
         }
-
-        container.innerHTML = filteredAccounts.map(account => `
-            <div class="account-card" data-id="${account.id}">
-                <div class="account-header">
-                    <div>
-                        <div class="account-name">${this.escapeHtml(account.name)}</div>
-                        <span class="account-level">Lv.${account.level || 1}</span>
-                    </div>
-                    <div class="account-actions">
-                        <button class="action-btn" onclick="editAccount('${account.id}')" title="编辑">✏️</button>
-                        <button class="action-btn delete" onclick="confirmDeleteAccount('${account.id}')" title="删除">🗑️</button>
-                    </div>
-                </div>
-                <div class="account-stats">
-                    <div class="account-stat">
-                        <div class="account-stat-value">${this.formatNumber(account.exp || 0)}</div>
-                        <div class="account-stat-label">经验</div>
-                    </div>
-                    <div class="account-stat">
-                        <div class="account-stat-value">${this.formatNumber(account.gold || 0)}</div>
-                        <div class="account-stat-label">金币</div>
-                    </div>
-                    <div class="account-stat">
-                        <div class="account-stat-value">${this.formatNumber(account.jade || 0)}</div>
-                        <div class="account-stat-label">勾玉</div>
-                    </div>
-                    <div class="account-stat">
-                        <div class="account-stat-value">${ShikigamiManager.getByAccountId(account.id).length}</div>
-                        <div class="account-stat-label">式神</div>
-                    </div>
-                </div>
-                ${account.note ? `<div class="account-note">📝 ${this.escapeHtml(account.note)}</div>` : ''}
-            </div>
-        `).join('');
-    }
-
-    static renderStats() {
-        const stats = AccountManager.getStats();
-        document.getElementById('totalAccounts').textContent = stats.totalAccounts;
-        document.getElementById('avgLevel').textContent = stats.avgLevel;
-        document.getElementById('totalJade').textContent = this.formatNumber(stats.totalJade);
-        document.getElementById('totalGold').textContent = this.formatNumber(stats.totalGold);
-    }
-
-    static renderShikigami(accountId, searchQuery = '') {
-        let shikigami = accountId ? ShikigamiManager.getByAccountId(accountId) : ShikigamiManager.getAll();
+        function setData(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+        function getSettings() {
+            return JSON.parse(localStorage.getItem(STORAGE.SETTINGS) || '{}');
+        }
+        function navigateTo(page) {
+            const pages = {
+                'home': 'index.html',
+                'accounts': 'servers.html',
+                'grind': 'grinding.html',
+                'sales': 'sales.html',
+                'settings': 'settings.html'
+            };
+            window.location.href = pages[page];
+        }
         
-        if (searchQuery) {
-            shikigami = shikigami.filter(s => 
-                s.name.toLowerCase().includes(searchQuery.toLowerCase())
+        function getCurrentPage() {
+            const path = window.location.pathname;
+            const filename = path.substring(path.lastIndexOf('/') + 1);
+            const pageMap = {
+                'index.html': 'home',
+                'servers.html': 'accounts',
+                'accounts.html': 'accounts',
+                'grinding.html': 'grind',
+                'sales.html': 'sales',
+                'settings.html': 'settings'
+            };
+            return pageMap[filename] || 'home';
+        }
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+        function openActionSheet(serverId) {
+            actionSheetServerId = serverId;
+            document.getElementById('serverActionSheet').classList.add('active');
+        }
+        function closeActionSheet() {
+            document.getElementById('serverActionSheet').classList.remove('active');
+        }
+        function editServerFromSheet() {
+            closeActionSheet();
+            editServer(actionSheetServerId);
+        }
+        function deleteServerFromSheet() {
+            closeActionSheet();
+            deleteServer(actionSheetServerId);
+        }
+        function showGrindDetail() {
+            const today = new Date().toDateString();
+            const grindLog = getData(STORAGE.GRIND_LOG).filter(g => new Date(g.date).toDateString() === today);
+            const accounts = getData(STORAGE.ACCOUNTS);
+            
+            const detailList = document.getElementById('grindDetailList');
+            
+            if (grindLog.length === 0) {
+                detailList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <div class="empty-text">今日暂无刷号记录</div>
+                    </div>
+                `;
+            } else {
+                detailList.innerHTML = grindLog.map(g => {
+                    const account = accounts.find(a => a.id === g.accountId);
+                    if (!account) return '';
+                    const serverName = getServerName(account.serverId);
+                    const time = new Date(g.date).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                    const typeText = g.type === 'levelup' ? '等级+1' : '标记完成';
+                    const prevLevel = g.type === 'levelup' ? account.level - 1 : account.level;
+                    
+                    return `
+                        <div class="grind-detail-item">
+                            <div class="grind-detail-account">${account.account}</div>
+                            <div class="grind-detail-info">
+                                <span>${serverName}</span>
+                                <div class="grind-detail-level">
+                                    <span>Lv.${prevLevel}</span>
+                                    ${g.type === 'levelup' ? '<span class="grind-detail-level-arrow">→</span><span style="color:var(--ios-green);font-weight:700;">Lv.' + account.level + '</span>' : ''}
+                                </div>
+                                <span>${time}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            openModal('grindDetailModal');
+        }
+        function renderHome() {
+            const accounts = getData(STORAGE.ACCOUNTS).filter(a => !a.isSold);
+            const servers = getData(STORAGE.SERVERS);
+            const today = new Date().toDateString();
+            const grindLog = getData(STORAGE.GRIND_LOG).filter(g => new Date(g.date).toDateString() === today);
+            
+            document.getElementById('statTotal').textContent = accounts.length;
+            document.getElementById('statTodo').textContent = accounts.filter(a => a.level < 40 && !grindLog.map(g => g.accountId).includes(a.id)).length;
+            document.getElementById('statLevel40').textContent = accounts.filter(a => a.level >= 40).length;
+            document.getElementById('statUnder40').textContent = grindLog.length;
+            
+            const serverStats = {};
+            accounts.forEach(a => {
+                if (a.level >= 40) {
+                    serverStats[a.serverId] = (serverStats[a.serverId] || 0) + 1;
+                }
+            });
+            const sortedServers = Object.entries(serverStats)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3);
+            
+            const rankClasses = ['gold', 'silver', 'bronze'];
+            document.getElementById('serverRankList').innerHTML = sortedServers.length ? 
+                sortedServers.map(([serverId, count], i) => {
+                    const server = servers.find(s => s.id === serverId);
+                    return `
+                        <div class="rank-item">
+                            <div class="rank-info">
+                                <span class="rank-num ${rankClasses[i]}">${i+1}</span>
+                                <span class="rank-name">${server ? server.name : '未知区服'}</span>
+                            </div>
+                            <span class="rank-count">${count}个</span>
+                        </div>
+                    `;
+                }).join('') : '<div class="empty-text" style="text-align:center;padding:20px;">暂无数据</div>';
+            
+            const shikigami = getData(STORAGE.SHIKIGAMI).slice(0, 8);
+            document.getElementById('shikigamiQuick').innerHTML = shikigami.map(s => `
+                <div class="shikigami-item" onclick="showShikigamiAccounts('${s.name}')">
+                    <div class="shikigami-icon">
+                        ${s.icon ? `<img src="${s.icon}">` : s.name.charAt(0)}
+                    </div>
+                    <div class="shikigami-name">${s.name}</div>
+                </div>
+            `).join('');
+        }
+        function showShikigamiAccounts(name) {
+            const accounts = getData(STORAGE.ACCOUNTS).filter(a => 
+                !a.isSold && a.shikigami && a.shikigami.includes(name)
             );
+            document.getElementById('shikigamiAccountsTitle').textContent = `拥有【${name}】的账号 (${accounts.length}个)`;
+            document.getElementById('shikigamiAccountsList').innerHTML = accounts.length ?
+                accounts.map(a => `
+                    <div class="ios-item" onclick="locateAccount('${a.serverId}', '${a.id}')">
+                        <div class="ios-item-content">
+                            <div class="ios-item-title">${a.account}</div>
+                            <div class="ios-item-subtitle">${getServerName(a.serverId)} · Lv.${a.level}</div>
+                        </div>
+                        <span class="ios-item-arrow">›</span>
+                    </div>
+                `).join('') : '<div class="empty-text" style="text-align:center;padding:20px;">暂无账号</div>';
+            openModal('shikigamiAccountsModal');
         }
-
-        const container = document.getElementById('shikigamiList');
-        
-        if (!accountId) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">👆</div>
-                    <p>请先选择一个账号</p>
-                </div>
-            `;
-            return;
+        function locateAccount(serverId, accountId) {
+            closeModal('shikigamiAccountsModal');
+            selectedServerId = serverId;
+            const server = getData(STORAGE.SERVERS).find(s => s.id === serverId);
+            document.getElementById('currentServerName').textContent = server ? server.name : '';
+            document.getElementById('currentServerId').value = serverId;
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById('accountListView').classList.add('active');
+            setTimeout(() => {
+                filterAccounts();
+                setTimeout(() => {
+                    const card = document.querySelector(`.account-card[data-id="${accountId}"], .account-grid-card[data-id="${accountId}"]`);
+                    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }, 100);
         }
-
-        if (shikigami.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">🎭</div>
-                    <p>${searchQuery ? '未找到匹配的式神' : '该账号暂无式神，点击上方按钮添加'}</p>
-                </div>
-            `;
-            return;
+        function getServerName(id) {
+            const servers = getData(STORAGE.SERVERS);
+            const server = servers.find(s => s.id === id);
+            return server ? server.name : '未知区服';
         }
-
-        container.innerHTML = shikigami.map(s => `
-            <div class="shikigami-card" data-id="${s.id}">
-                <div class="shikigami-header">
-                    <div class="shikigami-name">${this.escapeHtml(s.name)}</div>
-                    <span class="rarity-badge rarity-${s.rarity}">${s.rarity}</span>
-                </div>
-                <div class="shikigami-info">
-                    <span>等级: <strong>Lv.${s.level || 1}</strong></span>
-                    <span>技能: <strong>${s.skills || '-'}</strong></span>
-                </div>
-                <div class="shikigami-info">
-                    <span>觉醒: <strong>${s.awakened === 'true' ? '已觉醒' : '未觉醒'}</strong></span>
-                </div>
-                ${s.soul ? `<div class="shikigami-soul">🔮 ${this.escapeHtml(s.soul)}</div>` : ''}
-                <div class="shikigami-actions">
-                    <button class="action-btn" onclick="editShikigami('${s.id}')" style="flex: 1;">✏️ 编辑</button>
-                    <button class="action-btn delete" onclick="confirmDeleteShikigami('${s.id}')" style="flex: 1;">🗑️ 删除</button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    static renderAccountSelect() {
-        const accounts = AccountManager.getAll();
-        const select = document.getElementById('accountSelect');
-        const currentValue = select.value;
-        
-        select.innerHTML = '<option value="">选择账号</option>' + 
-            accounts.map(a => `<option value="${a.id}">${this.escapeHtml(a.name)}</option>`).join('');
-        
-        if (currentValue) {
-            select.value = currentValue;
+        function getShikigamiIcon(name) {
+            const shikigami = getData(STORAGE.SHIKIGAMI);
+            const s = shikigami.find(item => item.name === name);
+            return s ? s.icon : '';
         }
-    }
-
-    static formatNumber(num) {
-        return parseInt(num).toLocaleString();
-    }
-
-    static escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-}
-
-// 全局变量
-let deleteTarget = { type: null, id: null };
-
-// 视图切换 - 修复：使用 .tab-item 替代 .nav-item
-function switchView(viewName) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.querySelectorAll('.tab-item').forEach(n => n.classList.remove('active'));
-    
-    document.getElementById(viewName + 'View').classList.add('active');
-    document.querySelector(`.tab-item[data-view="${viewName}"]`).classList.add('active');
-    
-    if (viewName === 'shikigami') {
-        UIRenderer.renderAccountSelect();
-    }
-}
-
-// 账号弹窗
-function openAddAccountModal() {
-    document.getElementById('accountModalTitle').textContent = '添加账号';
-    document.getElementById('accountForm').reset();
-    document.getElementById('accountId').value = '';
-    document.getElementById('accountModal').classList.add('active');
-}
-
-function editAccount(id) {
-    const account = AccountManager.getById(id);
-    if (!account) return;
-    
-    document.getElementById('accountModalTitle').textContent = '编辑账号';
-    document.getElementById('accountId').value = account.id;
-    document.getElementById('accountName').value = account.name;
-    document.getElementById('accountLevel').value = account.level || 1;
-    document.getElementById('accountExp').value = account.exp || 0;
-    document.getElementById('accountGold').value = account.gold || 0;
-    document.getElementById('accountJade').value = account.jade || 0;
-    document.getElementById('accountNote').value = account.note || '';
-    document.getElementById('accountModal').classList.add('active');
-}
-
-function closeAccountModal() {
-    document.getElementById('accountModal').classList.remove('active');
-}
-
-// 式神弹窗
-function openAddShikigamiModal() {
-    const accountId = document.getElementById('accountSelect').value;
-    if (!accountId) {
-        alert('请先选择一个账号');
-        return;
-    }
-    
-    document.getElementById('shikigamiModalTitle').textContent = '添加式神';
-    document.getElementById('shikigamiForm').reset();
-    document.getElementById('shikigamiId').value = '';
-    document.getElementById('shikigamiAccountId').value = accountId;
-    document.getElementById('shikigamiModal').classList.add('active');
-}
-
-function editShikigami(id) {
-    const shikigami = ShikigamiManager.getById(id);
-    if (!shikigami) return;
-    
-    document.getElementById('shikigamiModalTitle').textContent = '编辑式神';
-    document.getElementById('shikigamiId').value = shikigami.id;
-    document.getElementById('shikigamiAccountId').value = shikigami.accountId;
-    document.getElementById('shikigamiName').value = shikigami.name;
-    document.getElementById('shikigamiRarity').value = shikigami.rarity;
-    document.getElementById('shikigamiLevel').value = shikigami.level || 1;
-    document.getElementById('shikigamiSkills').value = shikigami.skills || '';
-    document.getElementById('shikigamiAwakened').value = shikigami.awakened || 'false';
-    document.getElementById('shikigamiSoul').value = shikigami.soul || '';
-    document.getElementById('shikigamiModal').classList.add('active');
-}
-
-function closeShikigamiModal() {
-    document.getElementById('shikigamiModal').classList.remove('active');
-}
-
-// 删除确认
-function confirmDeleteAccount(id) {
-    deleteTarget = { type: 'account', id };
-    document.getElementById('confirmModal').classList.add('active');
-}
-
-function confirmDeleteShikigami(id) {
-    deleteTarget = { type: 'shikigami', id };
-    document.getElementById('confirmModal').classList.add('active');
-}
-
-function closeConfirmModal() {
-    document.getElementById('confirmModal').classList.remove('active');
-    deleteTarget = { type: null, id: null };
-}
-
-function executeDelete() {
-    if (deleteTarget.type === 'account') {
-        AccountManager.delete(deleteTarget.id);
-        refreshAll();
-    } else if (deleteTarget.type === 'shikigami') {
-        ShikigamiManager.delete(deleteTarget.id);
-        const accountId = document.getElementById('accountSelect').value;
-        UIRenderer.renderShikigami(accountId);
-    }
-    closeConfirmModal();
-}
-
-// 刷新所有数据
-function refreshAll() {
-    const searchQuery = document.getElementById('searchInput').value;
-    UIRenderer.renderAccounts(searchQuery);
-    UIRenderer.renderStats();
-    UIRenderer.renderAccountSelect();
-}
-
-// 关闭弹窗按钮
-function closeModal(modalId) {
-    document.getElementById(modalId).classList.remove('active');
-}
-
-// 事件监听
-document.addEventListener('DOMContentLoaded', function() {
-    // 导航切换 - 修复：使用 .tab-item 替代 .nav-item
-    document.querySelectorAll('.tab-item').forEach(item => {
-        item.addEventListener('click', () => switchView(item.dataset.view));
-    });
-
-    // 添加账号按钮
-    const addAccountBtn = document.getElementById('addAccountBtn');
-    if (addAccountBtn) {
-        addAccountBtn.addEventListener('click', openAddAccountModal);
-    }
-
-    // 添加式神按钮
-    const addShikigamiBtn = document.getElementById('addShikigamiBtn');
-    if (addShikigamiBtn) {
-        addShikigamiBtn.addEventListener('click', openAddShikigamiModal);
-    }
-
-    // 账号表单提交
-    const accountForm = document.getElementById('accountForm');
-    if (accountForm) {
-        accountForm.addEventListener('submit', function(e) {
+        function renderServerList() {
+            const servers = getData(STORAGE.SERVERS);
+            const accounts = getData(STORAGE.ACCOUNTS).filter(a => !a.isSold);
+            
+            document.getElementById('serverList').innerHTML = servers.map(s => {
+                const count = accounts.filter(a => a.serverId === s.id).length;
+                return `
+                    <div class="ios-item" onclick="enterServer('${s.id}')">
+                        <div class="ios-item-content">
+                            <div class="ios-item-title">${s.name}</div>
+                            <div class="ios-item-subtitle">${s.openTime || '未设置开服时间'}</div>
+                        </div>
+                        <span class="ios-item-value">${count}个账号</span>
+                        <button class="ios-more-btn" onclick="event.stopPropagation();openActionSheet('${s.id}')">⋯</button>
+                        <span class="ios-item-arrow">›</span>
+                    </div>
+                `;
+            }).join('');
+        }
+        function deleteServer(id) {
+            if (!confirm('删除区服将同时删除该服下所有账号，确定继续？')) return;
+            
+            const servers = getData(STORAGE.SERVERS).filter(s => s.id !== id);
+            setData(STORAGE.SERVERS, servers);
+            
+            const accounts = getData(STORAGE.ACCOUNTS).filter(a => a.serverId !== id);
+            setData(STORAGE.ACCOUNTS, accounts);
+            
+            renderServerList();
+            renderHome();
+            showToast('已删除区服及相关账号');
+        }
+        function enterServer(id) {
+            window.location.href = 'accounts.html?serverId=' + id;
+        }
+        function backToServerList() {
+            window.location.href = 'servers.html';
+        }
+        function openAddServerModal() {
+            document.getElementById('serverModalTitle').textContent = '添加区服';
+            document.getElementById('serverForm').reset();
+            document.getElementById('editServerId').value = '';
+            openModal('serverModal');
+        }
+        function editServer(id) {
+            const servers = getData(STORAGE.SERVERS);
+            const server = servers.find(s => s.id === id);
+            if (!server) return;
+            
+            document.getElementById('serverModalTitle').textContent = '编辑区服';
+            document.getElementById('editServerId').value = id;
+            document.getElementById('serverName').value = server.name;
+            document.getElementById('serverOpenTime').value = server.openTime || '';
+            openModal('serverModal');
+        }
+        document.getElementById('serverForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            const id = document.getElementById('editServerId').value;
+            const serverData = {
+                name: document.getElementById('serverName').value.trim(),
+                openTime: document.getElementById('serverOpenTime').value
+            };
+            
+            const servers = getData(STORAGE.SERVERS);
+            if (id) {
+                const index = servers.findIndex(s => s.id === id);
+                if (index !== -1) servers[index] = { ...servers[index], ...serverData };
+            } else {
+                servers.push({ id: generateId(), ...serverData, sort: servers.length });
+            }
+            
+            setData(STORAGE.SERVERS, servers);
+            closeModal('serverModal');
+            renderServerList();
+            showToast(id ? '已更新' : '已添加');
+        });
+        function setViewMode(mode) {
+            localStorage.setItem("account_view_mode", mode);
+            viewMode = mode;
+            document.getElementById('viewListBtn').classList.toggle('active', mode === 'list');
+            document.getElementById('viewGridBtn').classList.toggle('active', mode === 'grid');
+            filterAccounts();
+        }
+        function filterAccounts() {
+            const search = document.getElementById('accountSearch').value.toLowerCase();
+            let accounts = getData(STORAGE.ACCOUNTS).filter(a => !a.isSold && a.serverId === selectedServerId);
+            const shikigamiList = getData(STORAGE.SHIKIGAMI);
+            
+            if (search) {
+                accounts = accounts.filter(a => 
+                    a.account.toLowerCase().includes(search) ||
+                    (a.shikigami && a.shikigami.some(s => s.toLowerCase().includes(search)))
+                );
+            }
+            
+            const container = document.getElementById('accountList');
+            
+            if (accounts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📦</div>
+                        <div class="empty-text">暂无账号</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            function renderShikigamiIcons(accountShikigami) {
+                if (!accountShikigami || accountShikigami.length === 0) return '';
+                const showCount = Math.min(accountShikigami.length, 4);
+                const moreCount = accountShikigami.length - showCount;
+                let icons = '';
+                for (let i = 0; i < showCount; i++) {
+                    const sName = accountShikigami[i];
+                    const sData = shikigamiList.find(s => s.name === sName);
+                    const icon = sData && sData.icon ? `<img src="${sData.icon}">` : sName.charAt(0);
+                    icons += `<div class="account-shikigami-icon">${icon}</div>`;
+                }
+                if (moreCount > 0) {
+                    icons += `<div class="account-shikigami-more">+${moreCount}</div>`;
+                }
+                return `<div class="account-shikigami-icons">${icons}</div>`;
+            }
+            
+            if (viewMode === 'list') {
+                container.innerHTML = accounts.map(a => `
+                    <div class="account-card" data-id="${a.id}">
+                        <div class="account-header" style="flex-direction:column;gap:12px;">
+                            ${renderShikigamiIcons(a.shikigami)}
+                            <div class="account-info" style="width:100%;display:flex;justify-content:space-between;align-items:center;">
+                                <div>
+                                    <div class="account-name">${a.account}</div>
+                                    <div class="account-meta">${a.phone || '未绑定手机'}</div>
+                                </div>
+                                <span class="account-level ${a.level >= 40 ? 'green' : 'red'}">Lv.${a.level}</span>
+                            </div>
+                        </div>
+                        <div class="account-actions">
+                            <button class="ios-btn ios-btn-gray ios-btn-sm" onclick="copyAccountInfo('${a.id}')">复制</button>
+                            <button class="ios-btn ios-btn-gray ios-btn-sm" onclick="editAccount('${a.id}')">编辑</button>
+                            <button class="ios-btn ios-btn-success ios-btn-sm" onclick="openSellModal('${a.id}')">已售</button>
+                            <button class="ios-btn ios-btn-danger ios-btn-sm" onclick="deleteAccount('${a.id}')">删除</button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = '<div class="account-grid">' + accounts.map(a => `
+                    <div class="account-grid-card" data-id="${a.id}">
+                        <div style="margin-bottom:10px;">
+                            ${renderShikigamiIcons(a.shikigami)}
+                        </div>
+                        <div class="account-grid-header">
+                            <div style="flex:1;">
+                                <div class="account-grid-name">${a.account.substring(0, 12)}${a.account.length > 12 ? '...' : ''}</div>
+                                <div class="account-grid-meta">${a.phone ? a.phone.substring(0, 7) + '...' : '无手机'}</div>
+                            </div>
+                            <span class="account-level ${a.level >= 40 ? 'green' : 'red'}" style="font-size:11px;padding:3px 8px;">Lv.${a.level}</span>
+                        </div>
+                        <div class="account-grid-actions">
+                            <button class="ios-btn ios-btn-gray ios-btn-sm" onclick="copyAccountInfo('${a.id}')">复制</button>
+                            <button class="ios-btn ios-btn-gray ios-btn-sm" onclick="editAccount('${a.id}')">编辑</button>
+                            <button class="ios-btn ios-btn-success ios-btn-sm" onclick="openSellModal('${a.id}')">已售</button>
+                            <button class="ios-btn ios-btn-danger ios-btn-sm" onclick="deleteAccount('${a.id}')">删除</button>
+                        </div>
+                    </div>
+                `).join('') + '</div>';
+            }
+        }
+        function copyAccountInfo(id) {
+            const accounts = getData(STORAGE.ACCOUNTS);
+            const account = accounts.find(a => a.id === id);
+            if (account) {
+                const text = `账号：${account.account}\n密码：${account.password}\n区服：${getServerName(account.serverId)}\n等级：${account.level}`;
+                navigator.clipboard.writeText(text).then(() => showToast('已复制到剪贴板'));
+            }
+        }
+        function openAddAccountModal() {
+            document.getElementById('accountModalTitle').textContent = '添加账号';
+            document.getElementById('accountForm').reset();
+            document.getElementById('editAccountId').value = '';
+            document.getElementById('accountPhoneManual').style.display = 'none';
+            
+            const settings = getSettings();
+            document.getElementById('accountPassword').value = settings.defaultPassword || '';
+            
+            const phoneSelect = document.getElementById('accountPhone');
+            phoneSelect.innerHTML = '<option value="">选择手机号</option><option value="__manual__">手动输入</option>';
+            (settings.phoneList || []).forEach(phone => {
+                phoneSelect.innerHTML += `<option value="${phone}">${phone}</option>`;
+            });
+            
+            openModal('accountModal');
+        }
+        function checkPhoneManual() {
+            const select = document.getElementById('accountPhone');
+            const manualInput = document.getElementById('accountPhoneManual');
+            manualInput.style.display = select.value === '__manual__' ? 'block' : 'none';
+        }
+        function editAccount(id) {
+            const accounts = getData(STORAGE.ACCOUNTS);
+            const account = accounts.find(a => a.id === id);
+            if (!account) return;
+            
+            document.getElementById('accountModalTitle').textContent = '编辑账号';
+            document.getElementById('editAccountId').value = id;
+            document.getElementById('accountName').value = account.account.replace('@163.com', '');
+            document.getElementById('accountPassword').value = account.password;
+            document.getElementById('accountLevel').value = account.level;
+            document.getElementById('accountShikigami').value = account.shikigami ? account.shikigami.join(',') : '';
+            document.getElementById('accountRemark').value = account.remark || '';
+            
+            const settings = getSettings();
+            const phoneSelect = document.getElementById('accountPhone');
+            phoneSelect.innerHTML = '<option value="">选择手机号</option><option value="__manual__">手动输入</option>';
+            (settings.phoneList || []).forEach(phone => {
+                phoneSelect.innerHTML += `<option value="${phone}" ${phone === account.phone ? 'selected' : ''}>${phone}</option>`;
+            });
+            
+            if (account.phone && !settings.phoneList?.includes(account.phone)) {
+                phoneSelect.value = '__manual__';
+                document.getElementById('accountPhoneManual').value = account.phone;
+                document.getElementById('accountPhoneManual').style.display = 'block';
+            } else {
+                document.getElementById('accountPhoneManual').style.display = 'none';
+            }
+            
+            openModal('accountModal');
+        }
+        document.getElementById('accountForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('editAccountId').value;
+            let accountName = document.getElementById('accountName').value.trim();
+            if (!accountName.includes('@')) accountName += '@163.com';
+            
+            let phone = document.getElementById('accountPhone').value;
+            if (phone === '__manual__') phone = document.getElementById('accountPhoneManual').value;
             
             const accountData = {
-                name: document.getElementById('accountName').value,
-                level: document.getElementById('accountLevel').value,
-                exp: document.getElementById('accountExp').value,
-                gold: document.getElementById('accountGold').value,
-                jade: document.getElementById('accountJade').value,
-                note: document.getElementById('accountNote').value
+                serverId: document.getElementById('currentServerId').value,
+                account: accountName,
+                password: document.getElementById('accountPassword').value,
+                level: parseInt(document.getElementById('accountLevel').value) || 1,
+                phone: phone,
+                shikigami: document.getElementById('accountShikigami').value.split(',').map(s => s.trim()).filter(s => s),
+                remark: document.getElementById('accountRemark').value,
+                updateTime: new Date().toISOString()
             };
             
-            const accountId = document.getElementById('accountId').value;
-            if (accountId) {
-                AccountManager.update(accountId, accountData);
+            const accounts = getData(STORAGE.ACCOUNTS);
+            
+            if (id) {
+                const index = accounts.findIndex(a => a.id === id);
+                if (index !== -1) accounts[index] = { ...accounts[index], ...accountData };
             } else {
-                AccountManager.add(accountData);
+                accounts.push({
+                    id: generateId(),
+                    ...accountData,
+                    isSold: false,
+                    images: [],
+                    createTime: new Date().toISOString()
+                });
             }
             
-            closeAccountModal();
-            refreshAll();
+            setData(STORAGE.ACCOUNTS, accounts);
+            closeModal('accountModal');
+            filterAccounts();
+            renderHome();
+            showToast(id ? '已更新' : '已添加');
         });
-    }
-
-    // 式神表单提交
-    const shikigamiForm = document.getElementById('shikigamiForm');
-    if (shikigamiForm) {
-        shikigamiForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const shikigamiData = {
-                accountId: document.getElementById('shikigamiAccountId').value,
-                name: document.getElementById('shikigamiName').value,
-                rarity: document.getElementById('shikigamiRarity').value,
-                level: document.getElementById('shikigamiLevel').value,
-                skills: document.getElementById('shikigamiSkills').value,
-                awakened: document.getElementById('shikigamiAwakened').value,
-                soul: document.getElementById('shikigamiSoul').value
-            };
-            
-            const shikigamiId = document.getElementById('shikigamiId').value;
-            if (shikigamiId) {
-                ShikigamiManager.update(shikigamiId, shikigamiData);
-            } else {
-                ShikigamiManager.add(shikigamiData);
-            }
-            
-            closeShikigamiModal();
-            const accountId = document.getElementById('accountSelect').value;
-            UIRenderer.renderShikigami(accountId);
-            UIRenderer.renderStats();
-        });
-    }
-
-    // 账号选择变化
-    const accountSelect = document.getElementById('accountSelect');
-    if (accountSelect) {
-        accountSelect.addEventListener('change', function() {
-            UIRenderer.renderShikigami(this.value);
-        });
-    }
-
-    // 搜索
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            const query = this.value;
-            const activeView = document.querySelector('.view.active');
-            
-            if (activeView) {
-                if (activeView.id === 'accountsView') {
-                    UIRenderer.renderAccounts(query);
-                } else if (activeView.id === 'shikigamiView') {
-                    const accountId = document.getElementById('accountSelect').value;
-                    UIRenderer.renderShikigami(accountId, query);
-                }
-            }
-        });
-    }
-
-    // 确认删除
-    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-    if (confirmDeleteBtn) {
-        confirmDeleteBtn.addEventListener('click', executeDelete);
-    }
-
-    // 取消删除
-    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-    if (cancelDeleteBtn) {
-        cancelDeleteBtn.addEventListener('click', closeConfirmModal);
-    }
-
-    // 点击弹窗外部关闭
-    document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                this.classList.remove('active');
-            }
-        });
-    });
-
-    // 初始化
-    refreshAll();
-
-    // 添加示例数据（如果为空）
-    if (AccountManager.getAll().length === 0) {
-        AccountManager.add({
-            name: '我的主力账号',
-            level: 60,
-            exp: 999999,
-            gold: 5000000,
-            jade: 3000,
-            note: '主要游戏账号，签到第1000天'
-        });
-        
-        AccountManager.add({
-            name: '小号',
-            level: 45,
-            exp: 500000,
-            gold: 1000000,
-            jade: 500,
-            note: '备用账号'
-        });
-
-        const accounts = AccountManager.getAll();
-        if (accounts.length > 0) {
-            ShikigamiManager.add({
-                accountId: accounts[0].id,
-                name: '阿修罗',
-                rarity: 'SSR',
-                level: 40,
-                skills: '555',
-                awakened: 'true',
-                soul: '破势 攻攻爆'
-            });
-            
-            ShikigamiManager.add({
-                accountId: accounts[0].id,
-                name: '因幡辉夜姬',
-                rarity: 'SP',
-                level: 40,
-                skills: '555',
-                awakened: 'true',
-                soul: '火灵 速防防'
-            });
-
-            ShikigamiManager.add({
-                accountId: accounts[0].id,
-                name: '不见岳',
-                rarity: 'SSR',
-                level: 40,
-                skills: '515',
-                awakened: 'true',
-                soul: '薙魂 防防防'
-            });
+        function openSellModal(id) {
+            document.getElementById('sellAccountId').value = id;
+            document.getElementById('sellPrice').value = '';
+            openModal('sellModal');
         }
-        
-        refreshAll();
-    }
-});
+        document.getElementById('sellForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('sellAccountId').value;
+            const price = parseFloat(document.getElementById('sellPrice').value);
+            
+            const accounts = getData(STORAGE.ACCOUNTS);
+            const index = accounts.findIndex(a => a.id === id);
+            if (index !== -1) {
+                accounts[index].isSold = true;
+                accounts[index].soldPrice = price;
+                accounts[index].soldTime = new Date().toISOString();
+                setData(STORAGE.ACCOUNTS, accounts);
+            }
+            
+            closeModal('sellModal');
+            filterAccounts();
+            renderHome();
+            renderSales();
+            showToast('已标记为已售');
+        });
+        function deleteAccount(id) {
+            if (!confirm('确定要删除此账号吗？将移至回收站')) return;
+            
+            const accounts = getData(STORAGE.ACCOUNTS);
+            const account = accounts.find(a => a.id === id);
+            if (account) {
+                const recycle = getData(STORAGE.RECYCLE);
+                recycle.push({ ...account, deleteTime: new Date().toISOString() });
+                setData(STORAGE.RECYCLE, recycle);
+                setData(STORAGE.ACCOUNTS, accounts.filter(a => a.id !== id));
+                filterAccounts();
+                renderHome();
+                showToast('已移至回收站');
+            }
+        }
+        function renderGrind() {
+            const today = new Date().toDateString();
+            const accounts = getData(STORAGE.ACCOUNTS).filter(a => !a.isSold && a.level < 40);
+            const grindLog = getData(STORAGE.GRIND_LOG).filter(g => new Date(g.date).toDateString() === today);
+            
+            const grindedIds = grindLog.map(g => g.accountId);
+            const pendingAccounts = accounts.filter(a => !grindedIds.includes(a.id));
+            
+            document.getElementById('grindTodo').textContent = pendingAccounts.length;
+            document.getElementById('grindDone').textContent = grindLog.length;
+            
+            const container = document.getElementById('grindList');
+            
+            if (pendingAccounts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🎉</div>
+                        <div class="empty-text">今日刷号任务已完成！</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = pendingAccounts.map(a => {
+                const progress = Math.min((a.level / 40) * 100, 100);
+                return `
+                    <div class="grind-card">
+                        <div class="grind-header">
+                            <div class="grind-info">
+                                <div class="grind-name">${a.account}</div>
+                                <div class="grind-server">${getServerName(a.serverId)}</div>
+                            </div>
+                        </div>
+                        <div class="grind-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progress}%"></div>
+                            </div>
+                            <span class="progress-text">${a.level}/40</span>
+                        </div>
+                        <div class="grind-actions">
+                            <button class="ios-btn ios-btn-orange ios-btn-sm" onclick="levelUp('${a.id}')">+1级</button>
+                            <button class="ios-btn ios-btn-success ios-btn-sm" onclick="markDone('${a.id}')">今日完成</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        function levelUp(id) {
+            const accounts = getData(STORAGE.ACCOUNTS);
+            const index = accounts.findIndex(a => a.id === id);
+            if (index !== -1) {
+                accounts[index].level = Math.min(accounts[index].level + 1, 60);
+                accounts[index].updateTime = new Date().toISOString();
+                setData(STORAGE.ACCOUNTS, accounts);
+                
+                const grindLog = getData(STORAGE.GRIND_LOG);
+                grindLog.push({ accountId: id, date: new Date().toISOString(), type: 'levelup' });
+                setData(STORAGE.GRIND_LOG, grindLog);
+            }
+            renderGrind();
+            renderHome();
+            showToast('等级+1');
+        }
+        function markDone(id) {
+            const grindLog = getData(STORAGE.GRIND_LOG);
+            grindLog.push({ accountId: id, date: new Date().toISOString(), type: 'done' });
+            setData(STORAGE.GRIND_LOG, grindLog);
+            renderGrind();
+            renderHome();
+            showToast('已标记今日完成');
+        }
+        function renderSales() {
+            const accounts = getData(STORAGE.ACCOUNTS).filter(a => a.isSold);
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            
+            const todaySales = accounts.filter(a => new Date(a.soldTime) >= today);
+            const monthSales = accounts.filter(a => new Date(a.soldTime) >= monthStart);
+            
+            document.getElementById('saleToday').textContent = '¥' + todaySales.reduce((sum, a) => sum + (a.soldPrice || 0), 0);
+            document.getElementById('saleMonth').textContent = '¥' + monthSales.reduce((sum, a) => sum + (a.soldPrice || 0), 0);
+            document.getElementById('saleTotal').textContent = '¥' + accounts.reduce((sum, a) => sum + (a.soldPrice || 0), 0);
+            
+            accounts.sort((a, b) => new Date(b.soldTime) - new Date(a.soldTime));
+            
+            document.getElementById('saleList').innerHTML = accounts.length ?
+                accounts.map(a => `
+                    <div class="ios-item">
+                        <div class="ios-item-content">
+                            <div class="ios-item-title">${a.account}</div>
+                            <div class="ios-item-subtitle">${getServerName(a.serverId)} · ${new Date(a.soldTime).toLocaleDateString()}</div>
+                        </div>
+                        <span class="ios-item-value" style="color: var(--ios-green); font-weight: 700;">¥${a.soldPrice || 0}</span>
+                    </div>
+                `).join('') : '<div class="empty-text" style="text-align:center;padding:20px;">暂无销售记录</div>';
+        }
+        function exportSales(format) {
+            const accounts = getData(STORAGE.ACCOUNTS).filter(a => a.isSold);
+            let content, filename, type;
+            
+            if (format === 'txt') {
+                content = accounts.map(a => 
+                    `${a.account}\t${getServerName(a.serverId)}\t¥${a.soldPrice}\t${new Date(a.soldTime).toLocaleDateString()}`
+                ).join('\n');
+                filename = 'sales.txt';
+                type = 'text/plain';
+            } else {
+                content = JSON.stringify(accounts, null, 2);
+                filename = 'sales.json';
+                type = 'application/json';
+            }
+            
+            downloadFile(content, filename, type);
+        }
+        function openDefaultSettings() {
+            const settings = getSettings();
+            document.getElementById('defaultPassword').value = settings.defaultPassword || '';
+            document.getElementById('phoneList').value = (settings.phoneList || []).join('\n');
+            openModal('defaultModal');
+        }
+        document.getElementById('defaultForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const settings = getSettings();
+            settings.defaultPassword = document.getElementById('defaultPassword').value;
+            settings.phoneList = document.getElementById('phoneList').value.split('\n').map(p => p.trim()).filter(p => p);
+            localStorage.setItem(STORAGE.SETTINGS, JSON.stringify(settings));
+            closeModal('defaultModal');
+            showToast('已保存');
+        });
+        function openShikigamiManage() {
+            renderShikigamiManageList();
+            newShikigamiIconData = '';
+            document.getElementById('newShikigamiIconPreview').style.display = 'none';
+            openModal('shikigamiModal');
+        }
+        function renderShikigamiManageList() {
+            const shikigami = getData(STORAGE.SHIKIGAMI);
+            document.getElementById('shikigamiManageList').innerHTML = shikigami.map(s => `
+                <div class="ios-item">
+                    <div class="ios-item-content" style="display:flex;align-items:center;gap:14px;">
+                        <div class="shikigami-icon" style="width:38px;height:38px;font-size:15px;">
+                            ${s.icon ? `<img src="${s.icon}">` : s.name.charAt(0)}
+                        </div>
+                        <span>${s.name}</span>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <button class="ios-btn ios-btn-primary ios-btn-sm" onclick="openEditShikigami('${s.id}')">编辑</button>
+                        <button class="ios-btn ios-btn-danger ios-btn-sm" onclick="deleteShikigami('${s.id}')">删除</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        function previewNewIcon(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                newShikigamiIconData = e.target.result;
+                const preview = document.getElementById('newShikigamiIconPreview');
+                preview.src = newShikigamiIconData;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+        function previewEditIcon(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                editShikigamiIconData = e.target.result;
+                document.getElementById('editShikigamiIconPreview').src = editShikigamiIconData;
+            };
+            reader.readAsDataURL(file);
+        }
+        function addShikigami() {
+            const name = document.getElementById('newShikigamiName').value.trim();
+            if (!name) return;
+            
+            const shikigami = getData(STORAGE.SHIKIGAMI);
+            shikigami.push({ 
+                id: generateId(), 
+                name, 
+                icon: newShikigamiIconData 
+            });
+            setData(STORAGE.SHIKIGAMI, shikigami);
+            
+            document.getElementById('newShikigamiName').value = '';
+            newShikigamiIconData = '';
+            document.getElementById('newShikigamiIconPreview').style.display = 'none';
+            
+            renderShikigamiManageList();
+            renderHome();
+            showToast('已添加');
+        }
+        function openEditShikigami(id) {
+            const shikigami = getData(STORAGE.SHIKIGAMI);
+            const s = shikigami.find(item => item.id === id);
+            if (!s) return;
+            
+            document.getElementById('editShikigamiId').value = id;
+            document.getElementById('editShikigamiName').value = s.name;
+            editShikigamiIconData = s.icon || '';
+            document.getElementById('editShikigamiIconPreview').src = s.icon || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="62" height="62"><rect fill="%23007AFF" width="62" height="62"/></svg>';
+            
+            openModal('editShikigamiModal');
+        }
+        document.getElementById('editShikigamiForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('editShikigamiId').value;
+            const shikigami = getData(STORAGE.SHIKIGAMI);
+            const index = shikigami.findIndex(s => s.id === id);
+            if (index !== -1) {
+                shikigami[index].name = document.getElementById('editShikigamiName').value;
+                if (editShikigamiIconData) {
+                    shikigami[index].icon = editShikigamiIconData;
+                }
+                setData(STORAGE.SHIKIGAMI, shikigami);
+            }
+            closeModal('editShikigamiModal');
+            renderShikigamiManageList();
+            renderHome();
+            showToast('已更新');
+        });
+        function deleteShikigami(id) {
+            if (!confirm('确定删除此式神吗？')) return;
+            const shikigami = getData(STORAGE.SHIKIGAMI).filter(s => s.id !== id);
+            setData(STORAGE.SHIKIGAMI, shikigami);
+            renderShikigamiManageList();
+            renderHome();
+            showToast('已删除');
+        }
+        function openRecycleBin() {
+            renderRecycleList();
+            openModal('recycleModal');
+        }
+        function renderRecycleList() {
+            const recycle = getData(STORAGE.RECYCLE);
+            document.getElementById('recycleList').innerHTML = recycle.length ?
+                recycle.map(a => `
+                    <div class="ios-item">
+                        <div class="ios-item-content">
+                            <div class="ios-item-title">${a.account}</div>
+                            <div class="ios-item-subtitle">删除于 ${new Date(a.deleteTime).toLocaleDateString()}</div>
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <button class="ios-btn ios-btn-success ios-btn-sm" onclick="restoreAccount('${a.id}')">恢复</button>
+                            <button class="ios-btn ios-btn-danger ios-btn-sm" onclick="permanentDelete('${a.id}')">删除</button>
+                        </div>
+                    </div>
+                `).join('') : '<div class="empty-text" style="text-align:center;padding:20px;">回收站为空</div>';
+        }
+        function restoreAccount(id) {
+            const recycle = getData(STORAGE.RECYCLE);
+            const account = recycle.find(a => a.id === id);
+            if (account) {
+                const accounts = getData(STORAGE.ACCOUNTS);
+                delete account.deleteTime;
+                accounts.push(account);
+                setData(STORAGE.ACCOUNTS, accounts);
+                setData(STORAGE.RECYCLE, recycle.filter(a => a.id !== id));
+                renderRecycleList();
+                renderHome();
+                showToast('已恢复');
+            }
+        }
+        function permanentDelete(id) {
+            if (!confirm('确定永久删除吗？此操作不可恢复！')) return;
+            const recycle = getData(STORAGE.RECYCLE).filter(a => a.id !== id);
+            setData(STORAGE.RECYCLE, recycle);
+            renderRecycleList();
+            showToast('已永久删除');
+        }
+        function exportData() {
+            const data = {
+                accounts: getData(STORAGE.ACCOUNTS),
+                servers: getData(STORAGE.SERVERS),
+                shikigami: getData(STORAGE.SHIKIGAMI),
+                settings: getSettings(),
+                recycle: getData(STORAGE.RECYCLE)
+            };
+            downloadFile(JSON.stringify(data, null, 2), 'onmyoji-backup.json', 'application/json');
+            showToast('已导出备份文件');
+        }
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.accounts) localStorage.setItem(STORAGE.ACCOUNTS, JSON.stringify(data.accounts));
+                    if (data.servers) localStorage.setItem(STORAGE.SERVERS, JSON.stringify(data.servers));
+                    if (data.shikigami) localStorage.setItem(STORAGE.SHIKIGAMI, JSON.stringify(data.shikigami));
+                    if (data.settings) localStorage.setItem(STORAGE.SETTINGS, JSON.stringify(data.settings));
+                    if (data.recycle) localStorage.setItem(STORAGE.RECYCLE, JSON.stringify(data.recycle));
+                    showToast('数据导入成功');
+                    renderHome();
+                    renderServerList();
+                } catch (err) {
+                    showToast('导入失败：文件格式错误');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+        function clearAllData() {
+            if (!confirm('确定要清空所有数据吗？此操作不可恢复！')) return;
+            if (!confirm('再次确认：所有账号、区服、设置都将被清空！')) return;
+            
+            Object.values(STORAGE).forEach(key => localStorage.removeItem(key));
+            initData();
+            renderHome();
+            renderServerList();
+            showToast('已清空所有数据');
+        }
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            initData();
+            renderHome();
+        });

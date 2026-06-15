@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>阴阳师账号管理器 - 销售管理</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="safe-top"></div>
+    <div class="container">
+        <section class="view active">
+            <h1 class="ios-title">销售管理</h1>
+            <div class="ios-stats-grid">
+                <div class="ios-stat-card">
+                    <div class="ios-stat-value green" id="saleToday">0</div>
+                    <div class="ios-stat-label">今日销售额</div>
+                </div>
+                <div class="ios-stat-card">
+                    <div class="ios-stat-value green" id="saleMonth">0</div>
+                    <div class="ios-stat-label">本月销售额</div>
+                </div>
+                <div class="ios-stat-card" style="grid-column: span 2;">
+                    <div class="ios-stat-value green" id="saleTotal">0</div>
+                    <div class="ios-stat-label">累计销售额</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px; margin-bottom: 18px;">
+                <button class="ios-btn ios-btn-gray ios-btn-sm" style="flex:1" onclick="exportSales('txt')">导出TXT</button>
+                <button class="ios-btn ios-btn-gray ios-btn-sm" style="flex:1" onclick="exportSales('json')">导出JSON</button>
+            </div>
+            <div class="ios-card">
+                <div style="font-size:19px;font-weight:700;margin-bottom:14px;">📋 销售记录</div>
+                <div id="saleList"></div>
+            </div>
+        </section>
+    </div>
+    
+    <nav class="ios-tab-bar">
+        <a class="ios-tab-item" onclick="event.preventDefault();navigateTo('home')">
+            <span class="ios-tab-icon">🏠</span>
+            <span class="ios-tab-label">首页</span>
+        </a>
+        <a class="ios-tab-item" onclick="event.preventDefault();navigateTo('accounts')">
+            <span class="ios-tab-icon">📦</span>
+            <span class="ios-tab-label">账号库</span>
+        </a>
+        <a class="ios-tab-item" onclick="event.preventDefault();navigateTo('grind')">
+            <span class="ios-tab-icon">⚔️</span>
+            <span class="ios-tab-label">刷号</span>
+        </a>
+        <a class="ios-tab-item active" onclick="event.preventDefault();navigateTo('sales')">
+            <span class="ios-tab-icon">💰</span>
+            <span class="ios-tab-label">销售</span>
+        </a>
+        <a class="ios-tab-item" onclick="event.preventDefault();navigateTo('settings')">
+            <span class="ios-tab-icon">⚙️</span>
+            <span class="ios-tab-label">设置</span>
+        </a>
+    </nav>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initData();
+            renderSales();
+            // 设置导航激活状态
+            document.querySelectorAll('.ios-tab-item')[3].classList.add('active');
+        });
+    </script>
+</body>
+</html>

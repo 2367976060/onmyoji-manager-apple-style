@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>阴阳师账号管理器 - 账号列表</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="safe-top"></div>
+    <div class="container">
+        <section class="view active">
+            <div class="ios-nav-bar">
+                <button class="ios-nav-back" onclick="backToServerList()">‹ 返回</button>
+                <span class="ios-nav-title" id="currentServerName">区服名称</span>
+                <div class="ios-nav-right">
+                    <div class="ios-view-toggle">
+                        <button class="ios-view-toggle-btn active" id="viewListBtn" onclick="setViewMode('list')">☰</button>
+                        <button class="ios-view-toggle-btn" id="viewGridBtn" onclick="setViewMode('grid')">▦</button>
+                    </div>
+                </div>
+            </div>
+            <div class="search-bar">
+                <input type="text" class="search-input" id="accountSearch" placeholder="搜索账号、式神..." oninput="filterAccounts()">
+            </div>
+            <div id="accountList"></div>
+        </section>
+    </div>
+    
+    <nav class="ios-tab-bar">
+        <a class="ios-tab-item" onclick="event.preventDefault();navigateTo('home')">
+            <span class="ios-tab-icon">🏠</span>
+            <span class="ios-tab-label">首页</span>
+        </a>
+        <a class="ios-tab-item active" onclick="event.preventDefault();navigateTo('accounts')">
+            <span class="ios-tab-icon">📦</span>
+            <span class="ios-tab-label">账号库</span>
+        </a>
+        <a class="ios-tab-item" onclick="event.preventDefault();navigateTo('grind')">
+            <span class="ios-tab-icon">⚔️</span>
+            <span class="ios-tab-label">刷号</span>
+        </a>
+        <a class="ios-tab-item" onclick="event.preventDefault();navigateTo('sales')">
+            <span class="ios-tab-icon">💰</span>
+            <span class="ios-tab-label">销售</span>
+        </a>
+        <a class="ios-tab-item" onclick="event.preventDefault();navigateTo('settings')">
+            <span class="ios-tab-icon">⚙️</span>
+            <span class="ios-tab-label">设置</span>
+        </a>
+    </nav>
+
+    <button class="fab" onclick="openAddAccountModal()">+</button>
+    <input type="hidden" id="currentServerId">
+
+    <div class="ios-modal" id="accountModal">
+        <div class="ios-modal-content">
+            <div class="ios-modal-header">
+                <h3 class="ios-modal-title" id="accountModalTitle">添加账号</h3>
+                <button class="ios-modal-close" onclick="closeModal('accountModal')">×</button>
+            </div>
+            <form id="accountForm">
+                <input type="hidden" id="editAccountId">
+                <div class="ios-form-row">
+                    <div class="ios-form-group">
+                        <label class="ios-form-label">账号</label>
+                        <input type="text" class="ios-form-input" id="accountName" required placeholder="自动补@163.com">
+                    </div>
+                    <div class="ios-form-group">
+                        <label class="ios-form-label">密码</label>
+                        <input type="text" class="ios-form-input" id="accountPassword" placeholder="默认密码">
+                    </div>
+                </div>
+                <div class="ios-form-row">
+                    <div class="ios-form-group">
+                        <label class="ios-form-label">等级</label>
+                        <input type="number" class="ios-form-input" id="accountLevel" min="1" max="60" value="1">
+                    </div>
+                    <div class="ios-form-group">
+                        <label class="ios-form-label">手机号</label>
+                        <select class="ios-form-select" id="accountPhone" onchange="checkPhoneManual()">
+                            <option value="">选择手机号</option>
+                            <option value="__manual__">手动输入</option>
+                        </select>
+                        <input type="text" class="ios-form-input" id="accountPhoneManual" style="display:none;margin-top:10px;" placeholder="输入手机号">
+                    </div>
+                </div>
+                <div class="ios-form-group">
+                    <label class="ios-form-label">式神（逗号分隔）</label>
+                    <input type="text" class="ios-form-input" id="accountShikigami" placeholder="阿修罗,因幡辉夜姬">
+                </div>
+                <div class="ios-form-group">
+                    <label class="ios-form-label">备注</label>
+                    <input type="text" class="ios-form-input" id="accountRemark" placeholder="添加备注...">
+                </div>
+                <div class="ios-modal-footer">
+                    <button type="button" class="ios-btn ios-btn-gray" onclick="closeModal('accountModal')">取消</button>
+                    <button type="submit" class="ios-btn ios-btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="ios-modal" id="sellModal">
+        <div class="ios-modal-content">
+            <div class="ios-modal-header">
+                <h3 class="ios-modal-title">标记已售</h3>
+                <button class="ios-modal-close" onclick="closeModal('sellModal')">×</button>
+            </div>
+            <form id="sellForm">
+                <input type="hidden" id="sellAccountId">
+                <div class="ios-form-group">
+                    <label class="ios-form-label">出售价格</label>
+                    <input type="number" class="ios-form-input" id="sellPrice" required placeholder="输入售价">
+                </div>
+                <div class="ios-modal-footer">
+                    <button type="button" class="ios-btn ios-btn-gray" onclick="closeModal('sellModal')">取消</button>
+                    <button type="submit" class="ios-btn ios-btn-success">确认出售</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initData();
+            // 从URL获取serverId
+            const urlParams = new URLSearchParams(window.location.search);
+            const serverId = urlParams.get('serverId');
+            if (serverId) {
+                selectedServerId = serverId;
+                const server = getData(STORAGE.SERVERS).find(s => s.id === serverId);
+                document.getElementById('currentServerName').textContent = server ? server.name : '';
+                document.getElementById('currentServerId').value = serverId;
+                filterAccounts();
+            }
+            // 设置导航激活状态
+            document.querySelectorAll('.ios-tab-item')[1].classList.add('active');
+            // 恢复视图模式
+            const savedMode = localStorage.getItem('account_view_mode') || 'list';
+            viewMode = savedMode;
+            document.getElementById('viewListBtn').classList.toggle('active', savedMode === 'list');
+            document.getElementById('viewGridBtn').classList.toggle('active', savedMode === 'grid');
+        });
+    </script>
+</body>
+</html>
