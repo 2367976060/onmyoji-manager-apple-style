@@ -144,19 +144,19 @@
                 <button class="ios-modal-close" onclick="closeModal('addUserModal')">×</button>
             </div>
             <form id="addUserForm">
-                <div class="ios-form-group">
+                <div id="shikigamiAddForm" class="ios-form-group">
                     <label class="ios-form-label">用户名/账号</label>
                     <input type="text" class="ios-form-input" id="newUserUsername" required placeholder="输入用户名">
                 </div>
-                <div class="ios-form-group">
+                <div id="shikigamiAddForm" class="ios-form-group">
                     <label class="ios-form-label">密码</label>
                     <input type="password" class="ios-form-input" id="newUserPassword" required placeholder="输入密码">
                 </div>
-                <div class="ios-form-group">
+                <div id="shikigamiAddForm" class="ios-form-group">
                     <label class="ios-form-label">确认密码</label>
                     <input type="password" class="ios-form-input" id="newUserPassword2" required placeholder="再次输入密码">
                 </div>
-                <div class="ios-form-group">
+                <div id="shikigamiAddForm" class="ios-form-group">
                     <label class="ios-form-label">用户权限</label>
                     <select class="ios-form-select" id="newUserRole">
                         <option value="user">普通用户</option>
@@ -191,7 +191,7 @@
             </div>
             <form id="resetPasswordForm">
                 <input type="hidden" id="resetUsername">
-                <div class="ios-form-group">
+                <div id="shikigamiAddForm" class="ios-form-group">
                     <label class="ios-form-label">新密码</label>
                     <input type="password" class="ios-form-input" id="resetNewPassword" required placeholder="输入新密码">
                 </div>
@@ -210,11 +210,11 @@
                 <button class="ios-modal-close" onclick="closeModal('defaultModal')">×</button>
             </div>
             <form id="defaultForm">
-                <div class="ios-form-group">
+                <div id="shikigamiAddForm" class="ios-form-group">
                     <label class="ios-form-label">默认密码</label>
                     <input type="text" class="ios-form-input" id="defaultPassword" placeholder="147258369Hh">
                 </div>
-                <div class="ios-form-group">
+                <div id="shikigamiAddForm" class="ios-form-group">
                     <label class="ios-form-label">手机号列表（每行一个）</label>
                     <textarea class="ios-form-input" id="phoneList" rows="4" placeholder="13800138000"></textarea>
                 </div>
@@ -232,7 +232,7 @@
                 <h3 class="ios-modal-title">式神图鉴管理</h3>
                 <button class="ios-modal-close" onclick="closeModal('shikigamiModal')">×</button>
             </div>
-            <div class="ios-form-group">
+            <div id="shikigamiAddForm" class="ios-form-group">
                 <div style="display: flex; gap: 10px; align-items: flex-end;">
                     <div style="flex:1;">
                         <label class="ios-form-label">新式神名称</label>
@@ -261,11 +261,11 @@
             </div>
             <form id="editShikigamiForm">
                 <input type="hidden" id="editShikigamiId">
-                <div class="ios-form-group">
+                <div id="shikigamiAddForm" class="ios-form-group">
                     <label class="ios-form-label">式神名称</label>
                     <input type="text" class="ios-form-input" id="editShikigamiName" required>
                 </div>
-                <div class="ios-form-group">
+                <div id="shikigamiAddForm" class="ios-form-group">
                     <label class="ios-form-label">式神图标</label>
                     <div style="display:flex;gap:14px;align-items:center;">
                         <img id="editShikigamiIconPreview" class="image-preview" onclick="document.getElementById('editShikigamiIcon').click()">

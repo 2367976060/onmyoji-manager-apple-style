@@ -1,6 +1,6 @@
 // ==================== IndexedDB 数据库层 ====================
 const DB_NAME = 'OnmyojiManagerDB';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 const STORES = {
     USERS: 'users',
     PENDING_REG: 'pending_registrations',
@@ -245,23 +245,8 @@ async function approveRegistration(regId, approve) {
         return false;
     }
 }
-const DEFAULT_SHIKIGAMI = [
-    { name: '阿修罗', icon: '' },
-    { name: '因幡辉夜姬', icon: '' },
-    { name: '不见岳', icon: '' },
-    { name: '须佐之男', icon: '' },
-    { name: '神堕八岐大蛇', icon: '' },
-    { name: '季', icon: '' },
-    { name: '禅心云外镜', icon: '' },
-    { name: '天照', icon: '' }
-];
-const DEFAULT_SERVERS = [
-    { name: '春之樱', openTime: '2016-09-09' },
-    { name: '夏之蝉', openTime: '2016-09-09' },
-    { name: '秋之枫', openTime: '2016-09-09' },
-    { name: '冬之雪', openTime: '2016-09-09' },
-    { name: '相伴长情', openTime: '2017-01-01' }
-];
+const DEFAULT_SHIKIGAMI = [];
+const DEFAULT_SERVERS = [];
 async function initUserData(userId) {
     try {
         const settings = await dbGet(STORES.SETTINGS, userId);
@@ -271,23 +256,10 @@ async function initUserData(userId) {
             defaultPassword: '147258369Hh',
             phoneList: []
         });
-        for (const srv of DEFAULT_SERVERS) {
-            await dbAdd(STORES.SERVERS, {
-                id: generateId(),
-                userId,
-                ...srv,
-                sort: DEFAULT_SERVERS.indexOf(srv)
-            });
-        }
-        for (const shi of DEFAULT_SHIKIGAMI) {
-            await dbAdd(STORES.SHIKIGAMI, {
-                id: generateId(),
-                userId,
-                ...shi
-            });
-        }
     } catch (e) {
         console.error('初始化用户数据失败:', e);
+    }
+}
     }
 }
 async function getData(storeName) {
@@ -904,6 +876,14 @@ async function openShikigamiManage() {
 async function renderShikigamiManageList() {
     const shikigami = await getData(STORES.SHIKIGAMI);
     const list = document.getElementById('shikigamiManageList');
+    const addForm = document.getElementById('shikigamiAddForm');
+    const isAdmin = currentUser && currentUser.isAdmin;
+    
+    // 隐藏添加式神表单（非管理员）
+    if (addForm) {
+        addForm.style.display = isAdmin ? 'block' : 'none';
+    }
+    
     if (list) {
         list.innerHTML = shikigami.map(s => `
             <div class="ios-item">
@@ -913,10 +893,12 @@ async function renderShikigamiManageList() {
                     </div>
                     <span>${s.name}</span>
                 </div>
+                ${isAdmin ? `
                 <div style="display:flex;gap:8px;">
                     <button class="ios-btn ios-btn-primary ios-btn-sm" onclick="openEditShikigami('${s.id}')">编辑</button>
                     <button class="ios-btn ios-btn-danger ios-btn-sm" onclick="deleteShikigami('${s.id}')">删除</button>
                 </div>
+                ` : ''}
             </div>
         `).join('');
     }
