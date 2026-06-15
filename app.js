@@ -1,7 +1,6 @@
 // ==================== IndexedDB 数据库层 ====================
 const DB_NAME = 'OnmyojiManagerDB';
 const DB_VERSION = 1;
-
 const STORES = {
     USERS: 'users',
     PENDING_REG: 'pending_registrations',
@@ -12,9 +11,7 @@ const STORES = {
     RECYCLE: 'recycle',
     GRIND_LOG: 'grind_log'
 };
-
 let currentUser = null;
-
 function openDB() {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -56,7 +53,6 @@ function openDB() {
         };
     });
 }
-
 async function dbAdd(storeName, data) {
     const db = await openDB();
     return new Promise((resolve, reject) => {
@@ -68,7 +64,6 @@ async function dbAdd(storeName, data) {
         tx.oncomplete = () => db.close();
     });
 }
-
 async function dbPut(storeName, data) {
     const db = await openDB();
     return new Promise((resolve, reject) => {
@@ -80,7 +75,6 @@ async function dbPut(storeName, data) {
         tx.oncomplete = () => db.close();
     });
 }
-
 async function dbGet(storeName, key) {
     const db = await openDB();
     return new Promise((resolve, reject) => {
@@ -92,7 +86,6 @@ async function dbGet(storeName, key) {
         tx.oncomplete = () => db.close();
     });
 }
-
 async function dbGetAll(storeName) {
     const db = await openDB();
     return new Promise((resolve, reject) => {
@@ -104,7 +97,6 @@ async function dbGetAll(storeName) {
         tx.oncomplete = () => db.close();
     });
 }
-
 async function dbDelete(storeName, key) {
     const db = await openDB();
     return new Promise((resolve, reject) => {
@@ -116,7 +108,6 @@ async function dbDelete(storeName, key) {
         tx.oncomplete = () => db.close();
     });
 }
-
 async function dbGetByIndex(storeName, indexName, value) {
     const db = await openDB();
     return new Promise((resolve, reject) => {
@@ -129,7 +120,6 @@ async function dbGetByIndex(storeName, indexName, value) {
         tx.oncomplete = () => db.close();
     });
 }
-
 async function initAdmin() {
     const admin = await dbGet(STORES.USERS, '19330711219');
     if (!admin) {
@@ -141,7 +131,6 @@ async function initAdmin() {
         });
     }
 }
-
 async function loginUser(username, password) {
     try {
         const user = await dbGet(STORES.USERS, username);
@@ -162,7 +151,6 @@ async function loginUser(username, password) {
         return false;
     }
 }
-
 async function registerUser(username, password, contact) {
     try {
         const existing = await dbGet(STORES.USERS, username);
@@ -190,7 +178,6 @@ async function registerUser(username, password, contact) {
         return false;
     }
 }
-
 function checkAuth() {
     const userStr = sessionStorage.getItem('currentUser');
     if (userStr) {
@@ -208,17 +195,14 @@ function checkAuth() {
         return false;
     }
 }
-
 function logout() {
     sessionStorage.removeItem('currentUser');
     currentUser = null;
     window.location.href = 'login.html';
 }
-
 async function getPendingRegistrations() {
     return await dbGetAll(STORES.PENDING_REG);
 }
-
 async function approveRegistration(regId, approve) {
     const pending = await dbGet(STORES.PENDING_REG, regId);
     if (!pending) return false;
@@ -234,7 +218,6 @@ async function approveRegistration(regId, approve) {
     await dbDelete(STORES.PENDING_REG, regId);
     return true;
 }
-
 const DEFAULT_SHIKIGAMI = [
     { name: '阿修罗', icon: '' },
     { name: '因幡辉夜姬', icon: '' },
@@ -245,7 +228,6 @@ const DEFAULT_SHIKIGAMI = [
     { name: '禅心云外镜', icon: '' },
     { name: '天照', icon: '' }
 ];
-
 const DEFAULT_SERVERS = [
     { name: '春之樱', openTime: '2016-09-09' },
     { name: '夏之蝉', openTime: '2016-09-09' },
@@ -253,7 +235,6 @@ const DEFAULT_SERVERS = [
     { name: '冬之雪', openTime: '2016-09-09' },
     { name: '相伴长情', openTime: '2017-01-01' }
 ];
-
 async function initUserData(userId) {
     const settings = await dbGet(STORES.SETTINGS, userId);
     if (settings) return;
@@ -278,12 +259,10 @@ async function initUserData(userId) {
         });
     }
 }
-
 async function getData(storeName) {
     if (!currentUser) return [];
     return await dbGetByIndex(storeName, 'userId', currentUser.username);
 }
-
 async function setData(storeName, data) {
     const oldData = await getData(storeName);
     for (const item of oldData) {
@@ -294,29 +273,24 @@ async function setData(storeName, data) {
         await dbAdd(storeName, item);
     }
 }
-
 async function getSettings() {
     if (!currentUser) return {};
     const settings = await dbGet(STORES.SETTINGS, currentUser.username);
     return settings || { defaultPassword: '147258369Hh', phoneList: [] };
 }
-
 async function saveSettings(settings) {
     if (!currentUser) return;
     settings.userId = currentUser.username;
     await dbPut(STORES.SETTINGS, settings);
 }
-
 let selectedServerId = '';
 let actionSheetServerId = '';
 let viewMode = localStorage.getItem('account_view_mode') || 'list';
 let newShikigamiIconData = '';
 let editShikigamiIconData = '';
-
 function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
-
 function showToast(message) {
     const toast = document.getElementById('toast');
     if (!toast) return;
@@ -324,38 +298,31 @@ function showToast(message) {
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 2000);
 }
-
 function closeModal(id) {
     const modal = document.getElementById(id);
     if (modal) modal.classList.remove('active');
 }
-
 function openModal(id) {
     const modal = document.getElementById(id);
     if (modal) modal.classList.add('active');
 }
-
 function openActionSheet(serverId) {
     actionSheetServerId = serverId;
     const sheet = document.getElementById('serverActionSheet');
     if (sheet) sheet.classList.add('active');
 }
-
 function closeActionSheet() {
     const sheet = document.getElementById('serverActionSheet');
     if (sheet) sheet.classList.remove('active');
 }
-
 function editServerFromSheet() {
     closeActionSheet();
     editServer(actionSheetServerId);
 }
-
 function deleteServerFromSheet() {
     closeActionSheet();
     deleteServer(actionSheetServerId);
 }
-
 function navigateTo(page) {
     const pages = {
         'home': 'index.html',
@@ -366,15 +333,12 @@ function navigateTo(page) {
     };
     window.location.href = pages[page];
 }
-
 function enterServer(id) {
     window.location.href = 'accounts.html?serverId=' + id;
 }
-
 function backToServerList() {
     window.location.href = 'servers.html';
 }
-
 function setViewMode(mode) {
     viewMode = mode;
     localStorage.setItem('account_view_mode', mode);
@@ -384,7 +348,6 @@ function setViewMode(mode) {
     if (gridBtn) gridBtn.classList.toggle('active', mode === 'grid');
     filterAccounts();
 }
-
 async function renderHome() {
     const accounts = (await getData(STORES.ACCOUNTS)).filter(a => !a.isSold);
     const servers = await getData(STORES.SERVERS);
@@ -442,7 +405,6 @@ async function renderHome() {
         `).join('');
     }
 }
-
 async function showGrindDetail() {
     const today = new Date().toDateString();
     const grindLog = (await getData(STORES.GRIND_LOG)).filter(g => new Date(g.date).toDateString() === today);
@@ -482,7 +444,6 @@ async function showGrindDetail() {
     }
     openModal('grindDetailModal');
 }
-
 async function showShikigamiAccounts(name) {
     const accounts = (await getData(STORES.ACCOUNTS)).filter(a => 
         !a.isSold && a.shikigami && a.shikigami.includes(name)
@@ -504,12 +465,10 @@ async function showShikigamiAccounts(name) {
     }
     openModal('shikigamiAccountsModal');
 }
-
 function locateAccount(serverId, accountId) {
     closeModal('shikigamiAccountsModal');
     window.location.href = 'accounts.html?serverId=' + serverId;
 }
-
 async function renderServerList() {
     const servers = await getData(STORES.SERVERS);
     const accounts = (await getData(STORES.ACCOUNTS)).filter(a => !a.isSold);
@@ -532,7 +491,6 @@ async function renderServerList() {
         `;
     }).join('');
 }
-
 async function deleteServer(id) {
     if (!confirm('删除区服将同时删除该服下所有账号，确定继续？')) return;
     const servers = (await getData(STORES.SERVERS)).filter(s => s.id !== id);
@@ -543,14 +501,12 @@ async function deleteServer(id) {
     renderHome();
     showToast('已删除区服及相关账号');
 }
-
 async function openAddServerModal() {
     document.getElementById('serverModalTitle').textContent = '添加区服';
     document.getElementById('serverForm').reset();
     document.getElementById('editServerId').value = '';
     openModal('serverModal');
 }
-
 async function editServer(id) {
     const servers = await getData(STORES.SERVERS);
     const server = servers.find(s => s.id === id);
@@ -561,7 +517,6 @@ async function editServer(id) {
     document.getElementById('serverOpenTime').value = server.openTime || '';
     openModal('serverModal');
 }
-
 async function saveServer(e) {
     e.preventDefault();
     const id = document.getElementById('editServerId').value;
@@ -581,7 +536,6 @@ async function saveServer(e) {
     renderServerList();
     showToast(id ? '已更新' : '已添加');
 }
-
 async function filterAccounts() {
     const search = document.getElementById('accountSearch')?.value.toLowerCase() || '';
     let accounts = (await getData(STORES.ACCOUNTS)).filter(a => !a.isSold && a.serverId === selectedServerId);
@@ -666,7 +620,6 @@ async function filterAccounts() {
         `).join('') + '</div>';
     }
 }
-
 async function copyAccountInfo(id) {
     const accounts = await getData(STORES.ACCOUNTS);
     const account = accounts.find(a => a.id === id);
@@ -675,7 +628,6 @@ async function copyAccountInfo(id) {
         navigator.clipboard.writeText(text).then(() => showToast('已复制到剪贴板'));
     }
 }
-
 async function openAddAccountModal() {
     document.getElementById('accountModalTitle').textContent = '添加账号';
     document.getElementById('accountForm').reset();
@@ -690,13 +642,11 @@ async function openAddAccountModal() {
     });
     openModal('accountModal');
 }
-
 function checkPhoneManual() {
     const select = document.getElementById('accountPhone');
     const manualInput = document.getElementById('accountPhoneManual');
     manualInput.style.display = select.value === '__manual__' ? 'block' : 'none';
 }
-
 async function editAccount(id) {
     const accounts = await getData(STORES.ACCOUNTS);
     const account = accounts.find(a => a.id === id);
@@ -723,7 +673,6 @@ async function editAccount(id) {
     }
     openModal('accountModal');
 }
-
 async function saveAccount(e) {
     e.preventDefault();
     const id = document.getElementById('editAccountId').value;
@@ -760,13 +709,11 @@ async function saveAccount(e) {
     renderHome();
     showToast(id ? '已更新' : '已添加');
 }
-
 async function openSellModal(id) {
     document.getElementById('sellAccountId').value = id;
     document.getElementById('sellPrice').value = '';
     openModal('sellModal');
 }
-
 async function saveSell(e) {
     e.preventDefault();
     const id = document.getElementById('sellAccountId').value;
@@ -785,7 +732,6 @@ async function saveSell(e) {
     renderSales();
     showToast('已标记为已售');
 }
-
 async function deleteAccount(id) {
     if (!confirm('确定要删除此账号吗？将移至回收站')) return;
     const accounts = await getData(STORES.ACCOUNTS);
@@ -800,7 +746,6 @@ async function deleteAccount(id) {
         showToast('已移至回收站');
     }
 }
-
 async function renderGrind() {
     const today = new Date().toDateString();
     const accounts = (await getData(STORES.ACCOUNTS)).filter(a => !a.isSold && a.level < 40);
@@ -849,7 +794,6 @@ async function renderGrind() {
         `;
     }).join('');
 }
-
 async function levelUp(id) {
     const accounts = await getData(STORES.ACCOUNTS);
     const index = accounts.findIndex(a => a.id === id);
@@ -865,7 +809,6 @@ async function levelUp(id) {
     renderHome();
     showToast('等级+1');
 }
-
 async function markDone(id) {
     const grindLog = await getData(STORES.GRIND_LOG);
     grindLog.push({ id: generateId(), accountId: id, date: new Date().toISOString(), type: 'done' });
@@ -874,7 +817,6 @@ async function markDone(id) {
     renderHome();
     showToast('已标记今日完成');
 }
-
 async function renderSales() {
     const accounts = (await getData(STORES.ACCOUNTS)).filter(a => a.isSold);
     const now = new Date();
@@ -905,18 +847,15 @@ async function renderSales() {
             `).join('') : '<div class="empty-text" style="text-align:center;padding:20px;">暂无销售记录</div>';
     }
 }
-
 function exportSales(format) {
     showToast('导出功能开发中');
 }
-
 async function openDefaultSettings() {
     const settings = await getSettings();
     document.getElementById('defaultPassword').value = settings.defaultPassword || '';
     document.getElementById('phoneList').value = (settings.phoneList || []).join('\n');
     openModal('defaultModal');
 }
-
 async function saveDefaultSettings(e) {
     e.preventDefault();
     const settings = await getSettings();
@@ -926,13 +865,11 @@ async function saveDefaultSettings(e) {
     closeModal('defaultModal');
     showToast('已保存');
 }
-
 async function openShikigamiManage() {
     renderShikigamiManageList();
     newShikigamiIconData = '';
     openModal('shikigamiModal');
 }
-
 async function renderShikigamiManageList() {
     const shikigami = await getData(STORES.SHIKIGAMI);
     const list = document.getElementById('shikigamiManageList');
@@ -953,7 +890,6 @@ async function renderShikigamiManageList() {
         `).join('');
     }
 }
-
 function previewNewIcon(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -968,7 +904,6 @@ function previewNewIcon(event) {
     };
     reader.readAsDataURL(file);
 }
-
 function previewEditIcon(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -980,7 +915,6 @@ function previewEditIcon(event) {
     };
     reader.readAsDataURL(file);
 }
-
 async function addShikigami() {
     const nameInput = document.getElementById('newShikigamiName');
     const name = nameInput?.value.trim();
@@ -994,7 +928,6 @@ async function addShikigami() {
     renderHome();
     showToast('已添加');
 }
-
 async function openEditShikigami(id) {
     const shikigami = await getData(STORES.SHIKIGAMI);
     const s = shikigami.find(item => item.id === id);
@@ -1004,7 +937,6 @@ async function openEditShikigami(id) {
     editShikigamiIconData = s.icon || '';
     openModal('editShikigamiModal');
 }
-
 async function saveEditShikigami(e) {
     e.preventDefault();
     const id = document.getElementById('editShikigamiId').value;
@@ -1022,7 +954,6 @@ async function saveEditShikigami(e) {
     renderHome();
     showToast('已更新');
 }
-
 async function deleteShikigami(id) {
     if (!confirm('确定删除此式神吗？')) return;
     const shikigami = (await getData(STORES.SHIKIGAMI)).filter(s => s.id !== id);
@@ -1031,12 +962,10 @@ async function deleteShikigami(id) {
     renderHome();
     showToast('已删除');
 }
-
 async function openRecycleBin() {
     renderRecycleList();
     openModal('recycleModal');
 }
-
 async function renderRecycleList() {
     const recycle = await getData(STORES.RECYCLE);
     const list = document.getElementById('recycleList');
@@ -1056,7 +985,6 @@ async function renderRecycleList() {
             `).join('') : '<div class="empty-text" style="text-align:center;padding:20px;">回收站为空</div>';
     }
 }
-
 async function restoreAccount(id) {
     const recycle = await getData(STORES.RECYCLE);
     const account = recycle.find(a => a.id === id);
@@ -1071,7 +999,6 @@ async function restoreAccount(id) {
         showToast('已恢复');
     }
 }
-
 async function permanentDelete(id) {
     if (!confirm('确定永久删除吗？此操作不可恢复！')) return;
     const recycle = (await getData(STORES.RECYCLE)).filter(a => a.id !== id);
@@ -1079,30 +1006,169 @@ async function permanentDelete(id) {
     renderRecycleList();
     showToast('已永久删除');
 }
-
 function exportData() {
     showToast('导出功能开发中');
 }
-
 function importData(event) {
     showToast('导入功能开发中');
 }
-
 function clearAllData() {
     if (!confirm('确定要清空所有数据吗？此操作不可恢复！')) return;
     showToast('清空功能开发中');
 }
 
+// ==================== 管理员用户管理功能 ====================
+
+async function adminAddUser(username, password, isAdmin) {
+    try {
+        const existing = await dbGet(STORES.USERS, username);
+        if (existing) {
+            showToast('用户名已存在');
+            return false;
+        }
+        await dbAdd(STORES.USERS, {
+            username,
+            password,
+            isAdmin: isAdmin || false,
+            createTime: new Date().toISOString()
+        });
+        await initUserData(username);
+        showToast('用户创建成功');
+        return true;
+    } catch (e) {
+        console.error(e);
+        showToast('创建用户失败');
+        return false;
+    }
+}
+async function getAllUsers() {
+    return await dbGetAll(STORES.USERS);
+}
+async function adminChangeRole(username, isAdmin) {
+    try {
+        const user = await dbGet(STORES.USERS, username);
+        if (!user) {
+            showToast('用户不存在');
+            return false;
+        }
+        user.isAdmin = isAdmin;
+        await dbPut(STORES.USERS, user);
+        showToast('权限修改成功');
+        return true;
+    } catch (e) {
+        console.error(e);
+        showToast('修改权限失败');
+        return false;
+    }
+}
+async function adminResetPassword(username, newPassword) {
+    try {
+        const user = await dbGet(STORES.USERS, username);
+        if (!user) {
+            showToast('用户不存在');
+            return false;
+        }
+        user.password = newPassword;
+        await dbPut(STORES.USERS, user);
+        showToast('密码重置成功');
+        return true;
+    } catch (e) {
+        console.error(e);
+        showToast('重置密码失败');
+        return false;
+    }
+}
+async function adminDeleteUser(username) {
+    if (!confirm('确定要删除用户 ' + username + ' 吗？此操作不可恢复！')) {
+        return false;
+    }
+    try {
+        await dbDelete(STORES.USERS, username);
+        const stores = [STORES.ACCOUNTS, STORES.SERVERS, STORES.SHIKIGAMI, STORES.SETTINGS, STORES.RECYCLE, STORES.GRIND_LOG];
+        for (const store of stores) {
+            const userData = await dbGetByIndex(store, 'userId', username);
+            for (const item of userData) {
+                await dbDelete(store, item.id);
+            }
+        }
+        showToast('用户删除成功');
+        return true;
+    } catch (e) {
+        console.error(e);
+        showToast('删除用户失败');
+        return false;
+    }
+}
+function openAddUserModal() {
+    document.getElementById('addUserForm').reset();
+    openModal('addUserModal');
+}
+async function openUserManageModal() {
+    await renderUserManageList();
+    openModal('userManageModal');
+}
+async function renderUserManageList() {
+    const users = await getAllUsers();
+    const container = document.getElementById('userManageList');
+    if (!container) return;
+    
+    container.innerHTML = users.map(u => {
+        const roleText = u.isAdmin ? '<span style="color:var(--ios-orange);font-weight:600;">管理员</span>' : '普通用户';
+        const roleBtnText = u.isAdmin ? '降为用户' : '设为管理员';
+        return `
+            <div class="ios-item">
+                <div class="ios-item-content">
+                    <div class="ios-item-title">${u.username}</div>
+                    <div class="ios-item-subtitle">
+                        ${roleText} · 注册于 ${new Date(u.createTime).toLocaleDateString()}
+                    </div>
+                </div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <button class="ios-btn ios-btn-primary ios-btn-sm" onclick="toggleUserRole('${u.username}', ${!u.isAdmin})">
+                        ${roleBtnText}
+                    </button>
+                    <button class="ios-btn ios-btn-gray ios-btn-sm" onclick="openResetPasswordModal('${u.username}')">重置密码</button>
+                    <button class="ios-btn ios-btn-danger ios-btn-sm" onclick="deleteUserConfirm('${u.username}')">删除</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+async function toggleUserRole(username, isAdmin) {
+    const success = await adminChangeRole(username, isAdmin);
+    if (success) {
+        await renderUserManageList();
+    }
+}
+function openResetPasswordModal(username) {
+    document.getElementById('resetUsername').value = username;
+    document.getElementById('resetNewPassword').value = '';
+    openModal('resetPasswordModal');
+}
+async function deleteUserConfirm(username) {
+    const success = await adminDeleteUser(username);
+    if (success) {
+        await renderUserManageList();
+    }
+}
+async function openApprovalModal() {
+    await renderApprovalList();
+    openModal('approvalModal');
+}
 async function renderApprovalList() {
     const pending = await getPendingRegistrations();
     const container = document.getElementById('approvalList');
     if (!container) return;
+    
     container.innerHTML = pending.length ?
         pending.map(p => `
             <div class="ios-item">
                 <div class="ios-item-content">
                     <div class="ios-item-title">${p.username}</div>
-                    <div class="ios-item-subtitle">申请时间：${new Date(p.submitTime).toLocaleString()}${p.contact ? ' | 联系：' + p.contact : ''}</div>
+                    <div class="ios-item-subtitle">
+                        申请时间：${new Date(p.submitTime).toLocaleString()}
+                        ${p.contact ? ' | 联系：' + p.contact : ''}
+                    </div>
                 </div>
                 <div style="display:flex;gap:8px;">
                     <button class="ios-btn ios-btn-success ios-btn-sm" onclick="approveReg('${p.id}', true)">同意</button>
@@ -1111,12 +1177,11 @@ async function renderApprovalList() {
             </div>
         `).join('') : '<div class="empty-text" style="text-align:center;padding:20px;">暂无待审批申请</div>';
 }
-
 async function approveReg(id, approve) {
     const msg = approve ? '确定通过此注册申请吗？' : '确定驳回此注册申请吗？';
     if (!confirm(msg)) return;
     await approveRegistration(id, approve);
-    renderApprovalList();
+    await renderApprovalList();
     showToast(approve ? '已通过' : '已驳回');
 }
 
@@ -1160,215 +1225,5 @@ document.addEventListener('DOMContentLoaded', function() {
     } else if (path.includes('sales.html')) {
         checkAuth();
         renderSales();
-    } else if (path.includes('settings.html')) {
-        checkAuth();
-        if (currentUser && currentUser.isAdmin) {
-            const settingsGroup = document.querySelector('.ios-group:first-of-type');
-            if (settingsGroup) {
-                const approvalItem = document.createElement('div');
-                approvalItem.className = 'ios-item';
-                approvalItem.onclick = function() {
-                    openModal('approvalModal');
-                    renderApprovalList();
-                };
-                approvalItem.innerHTML = `
-                    <div class="ios-item-content">
-                        <div class="ios-item-title" style="color:var(--ios-orange);">用户注册审批</div>
-                        <div class="ios-item-subtitle">管理员专属功能</div>
-                    </div>
-                    <span class="ios-item-arrow">›</span>
-                `;
-                settingsGroup.appendChild(approvalItem);
-            }
-        }
     }
 });
-
-// ==================== 管理员用户管理功能 ====================
-
-async function adminAddUser(username, password, isAdmin) {
-    try {
-        const existing = await dbGet(STORES.USERS, username);
-        if (existing) {
-            showToast('用户名已存在');
-            return false;
-        }
-        
-        await dbAdd(STORES.USERS, {
-            username,
-            password,
-            isAdmin: isAdmin || false,
-            createTime: new Date().toISOString()
-        });
-        
-        await initUserData(username);
-        showToast('用户创建成功');
-        return true;
-    } catch (e) {
-        console.error(e);
-        showToast('创建用户失败');
-        return false;
-    }
-}
-
-async function getAllUsers() {
-    return await dbGetAll(STORES.USERS);
-}
-
-async function adminChangeRole(username, isAdmin) {
-    try {
-        const user = await dbGet(STORES.USERS, username);
-        if (!user) {
-            showToast('用户不存在');
-            return false;
-        }
-        
-        user.isAdmin = isAdmin;
-        await dbPut(STORES.USERS, user);
-        showToast('权限修改成功');
-        return true;
-    } catch (e) {
-        console.error(e);
-        showToast('修改权限失败');
-        return false;
-    }
-}
-
-async function adminResetPassword(username, newPassword) {
-    try {
-        const user = await dbGet(STORES.USERS, username);
-        if (!user) {
-            showToast('用户不存在');
-            return false;
-        }
-        
-        user.password = newPassword;
-        await dbPut(STORES.USERS, user);
-        showToast('密码重置成功');
-        return true;
-    } catch (e) {
-        console.error(e);
-        showToast('重置密码失败');
-        return false;
-    }
-}
-
-async function adminDeleteUser(username) {
-    if (!confirm(`确定要删除用户 ${username} 吗？此操作不可恢复！`)) {
-        return false;
-    }
-    
-    try {
-        // 删除用户账号
-        await dbDelete(STORES.USERS, username);
-        
-        // 删除用户的所有数据
-        const stores = [STORES.ACCOUNTS, STORES.SERVERS, STORES.SHIKIGAMI, STORES.SETTINGS, STORES.RECYCLE, STORES.GRIND_LOG];
-        for (const store of stores) {
-            const userData = await dbGetByIndex(store, 'userId', username);
-            for (const item of userData) {
-                await dbDelete(store, item.id);
-            }
-        }
-        
-        showToast('用户删除成功');
-        return true;
-    } catch (e) {
-        console.error(e);
-        showToast('删除用户失败');
-        return false;
-    }
-}
-
-function openAddUserModal() {
-    document.getElementById('addUserForm').reset();
-    openModal('addUserModal');
-}
-
-async function openUserManageModal() {
-    await renderUserManageList();
-    openModal('userManageModal');
-}
-
-async function renderUserManageList() {
-    const users = await getAllUsers();
-    const container = document.getElementById('userManageList');
-    if (!container) return;
-    
-    container.innerHTML = users.map(u => `
-        <div class="ios-item">
-            <div class="ios-item-content">
-                <div class="ios-item-title">${u.username}</div>
-                <div class="ios-item-subtitle">
-                    ${u.isAdmin ? '<span style=\"color:var(--ios-orange);font-weight:600;\">管理员</span>' : '普通用户'}
-                     · 注册于 ${new Date(u.createTime).toLocaleDateString()}
-                </div>
-            </div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button class="ios-btn ios-btn-primary ios-btn-sm" onclick="toggleUserRole('${u.username}', ${!u.isAdmin})">
-                    ${u.isAdmin ? '降为用户' : '设为管理员'}
-                </button>
-                <button class="ios-btn ios-btn-gray ios-btn-sm" onclick="openResetPasswordModal('${u.username}')">重置密码</button>
-                <button class="ios-btn ios-btn-danger ios-btn-sm" onclick="deleteUserConfirm('${u.username}')">删除</button>
-            </div>
-        </div>
-    `).join('');
-}
-
-async function toggleUserRole(username, isAdmin) {
-    const success = await adminChangeRole(username, isAdmin);
-    if (success) {
-        await renderUserManageList();
-    }
-}
-
-function openResetPasswordModal(username) {
-    document.getElementById('resetUsername').value = username;
-    document.getElementById('resetNewPassword').value = '';
-    openModal('resetPasswordModal');
-}
-
-async function deleteUserConfirm(username) {
-    const success = await adminDeleteUser(username);
-    if (success) {
-        await renderUserManageList();
-    }
-}
-
-async function openApprovalModal() {
-    await renderApprovalList();
-    openModal('approvalModal');
-}
-
-async function renderApprovalList() {
-    const pending = await getPendingRegistrations();
-    const container = document.getElementById('approvalList');
-    if (!container) return;
-    
-    container.innerHTML = pending.length ?
-        pending.map(p => `
-            <div class="ios-item">
-                <div class="ios-item-content">
-                    <div class="ios-item-title">${p.username}</div>
-                    <div class="ios-item-subtitle">
-                        申请时间：${new Date(p.submitTime).toLocaleString()}
-                        ${p.contact ? ' | 联系：' + p.contact : ''}
-                    </div>
-                </div>
-                <div style="display:flex;gap:8px;">
-                    <button class="ios-btn ios-btn-success ios-btn-sm" onclick="approveReg('${p.id}', true)">同意</button>
-                    <button class="ios-btn ios-btn-danger ios-btn-sm" onclick="approveReg('${p.id}', false)">驳回</button>
-                </div>
-            </div>
-        `).join('') : '<div class="empty-text" style="text-align:center;padding:20px;">暂无待审批申请</div>';
-}
-
-async function approveReg(id, approve) {
-    const msg = approve ? '确定通过此注册申请吗？' : '确定驳回此注册申请吗？';
-    if (!confirm(msg)) return;
-    
-    await approveRegistration(id, approve);
-    await renderApprovalList();
-    showToast(approve ? '已通过' : '已驳回');
-}
-
