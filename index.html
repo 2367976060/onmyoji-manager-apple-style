@@ -130,6 +130,15 @@
             font-size: 16px;
             font-weight: 400;
         }
+        .ios-more-btn {
+            padding: 8px 12px;
+            border: none;
+            background: none;
+            font-size: 20px;
+            color: var(--ios-text-secondary);
+            cursor: pointer;
+            font-weight: 600;
+        }
         .ios-stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -197,9 +206,9 @@
             color: white;
         }
         .ios-btn-sm {
-            padding: 8px 14px;
-            font-size: 14px;
-            border-radius: 10px;
+            padding: 6px 10px;
+            font-size: 12px;
+            border-radius: 8px;
             font-weight: 600;
         }
         .ios-tab-bar {
@@ -341,6 +350,64 @@
         .ios-modal-footer .ios-btn {
             flex: 1;
         }
+        .ios-action-sheet {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.45);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 1100;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .ios-action-sheet.active {
+            display: flex;
+        }
+        .ios-action-sheet-content {
+            width: 100%;
+            padding: 8px 16px 16px;
+            animation: iosSheet 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .ios-action-sheet-item {
+            background: var(--ios-card);
+            padding: 16px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 0.5px solid var(--ios-gray);
+        }
+        .ios-action-sheet-item:first-child {
+            border-radius: var(--ios-radius) var(--ios-radius) 0 0;
+        }
+        .ios-action-sheet-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 var(--ios-radius) var(--ios-radius);
+            margin-bottom: 8px;
+        }
+        .ios-action-sheet-item:active {
+            background: var(--ios-gray);
+        }
+        .ios-action-sheet-item.danger {
+            color: var(--ios-red);
+        }
+        .ios-action-sheet-cancel {
+            background: var(--ios-card);
+            padding: 16px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: var(--ios-radius);
+            transition: background 0.2s;
+        }
+        .ios-action-sheet-cancel:active {
+            background: var(--ios-gray);
+        }
         .ios-nav-bar {
             display: flex;
             align-items: center;
@@ -386,7 +453,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
         .account-info {
             flex: 1;
@@ -419,24 +486,48 @@
         }
         .account-actions {
             display: flex;
-            gap: 8px;
-            margin-top: 14px;
+            gap: 6px;
+            margin-top: 12px;
             justify-content: flex-end;
             flex-wrap: wrap;
         }
-        .account-shikigami {
+        .account-shikigami-icons {
             display: flex;
             gap: 6px;
-            flex-wrap: wrap;
+            align-items: center;
             margin-top: 10px;
         }
-        .account-shikigami-tag {
-            padding: 4px 12px;
-            background: var(--ios-bg);
-            border-radius: 14px;
+        .account-shikigami-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--ios-blue), #5856D6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 12px;
+            color: white;
+            overflow: hidden;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .account-shikigami-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .account-shikigami-more {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--ios-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
             color: var(--ios-text-secondary);
-            font-weight: 500;
+            font-weight: 600;
+            flex-shrink: 0;
         }
         .view-toggle {
             display: flex;
@@ -470,24 +561,36 @@
         .account-grid-card {
             background: var(--ios-card);
             border-radius: var(--ios-radius);
-            padding: 16px;
+            padding: 14px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
             transition: transform 0.2s;
         }
         .account-grid-card:active {
             transform: scale(0.98);
         }
+        .account-grid-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
         .account-grid-name {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             word-break: break-all;
             line-height: 1.2;
         }
         .account-grid-meta {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--ios-text-secondary);
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+        }
+        .account-grid-actions {
+            display: flex;
+            gap: 4px;
+            margin-top: 10px;
+            flex-wrap: wrap;
         }
         .grind-card {
             background: var(--ios-card);
@@ -704,22 +807,6 @@
             border: 2px solid var(--ios-gray);
             cursor: pointer;
         }
-        .server-actions {
-            display: flex;
-            gap: 8px;
-        }
-        .server-action-btn {
-            padding: 7px 14px;
-            border: none;
-            border-radius: 10px;
-            font-size: 13px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: opacity 0.2s;
-        }
-        .server-action-btn:active {
-            opacity: 0.7;
-        }
     </style>
 </head>
 <body>
@@ -892,6 +979,13 @@
             <span class="ios-tab-label">设置</span>
         </button>
     </nav>
+    <div class="ios-action-sheet" id="serverActionSheet">
+        <div class="ios-action-sheet-content">
+            <div class="ios-action-sheet-item" onclick="editServerFromSheet()">编辑</div>
+            <div class="ios-action-sheet-item danger" onclick="deleteServerFromSheet()">删除</div>
+            <div class="ios-action-sheet-cancel" onclick="closeActionSheet()">取消</div>
+        </div>
+    </div>
     <div class="ios-modal" id="serverModal">
         <div class="ios-modal-content">
             <div class="ios-modal-header">
@@ -1104,6 +1198,7 @@
         ];
         let currentView = 'home';
         let selectedServerId = '';
+        let actionSheetServerId = '';
         let viewMode = 'list';
         let newShikigamiIconData = '';
         let editShikigamiIconData = '';
@@ -1173,6 +1268,21 @@
         }
         function openModal(id) {
             document.getElementById(id).classList.add('active');
+        }
+        function openActionSheet(serverId) {
+            actionSheetServerId = serverId;
+            document.getElementById('serverActionSheet').classList.add('active');
+        }
+        function closeActionSheet() {
+            document.getElementById('serverActionSheet').classList.remove('active');
+        }
+        function editServerFromSheet() {
+            closeActionSheet();
+            editServer(actionSheetServerId);
+        }
+        function deleteServerFromSheet() {
+            closeActionSheet();
+            deleteServer(actionSheetServerId);
         }
         function renderHome() {
             const accounts = getData(STORAGE.ACCOUNTS).filter(a => !a.isSold);
@@ -1256,6 +1366,11 @@
             const server = servers.find(s => s.id === id);
             return server ? server.name : '未知区服';
         }
+        function getShikigamiIcon(name) {
+            const shikigami = getData(STORAGE.SHIKIGAMI);
+            const s = shikigami.find(item => item.name === name);
+            return s ? s.icon : '';
+        }
         function renderServerList() {
             const servers = getData(STORAGE.SERVERS);
             const accounts = getData(STORAGE.ACCOUNTS).filter(a => !a.isSold);
@@ -1269,17 +1384,13 @@
                             <div class="ios-item-subtitle">${s.openTime || '未设置开服时间'}</div>
                         </div>
                         <span class="ios-item-value">${count}个账号</span>
-                        <div class="server-actions" onclick="event.stopPropagation();">
-                            <button class="server-action-btn" style="background:var(--ios-blue);color:white;" onclick="editServer('${s.id}')">编辑</button>
-                            <button class="server-action-btn" style="background:var(--ios-red);color:white;" onclick="deleteServer('${s.id}')">删除</button>
-                        </div>
+                        <button class="ios-more-btn" onclick="event.stopPropagation();openActionSheet('${s.id}')">⋯</button>
                         <span class="ios-item-arrow">›</span>
                     </div>
                 `;
             }).join('');
         }
         function deleteServer(id) {
-            event.stopPropagation();
             if (!confirm('删除区服将同时删除该服下所有账号，确定继续？')) return;
             
             const servers = getData(STORAGE.SERVERS).filter(s => s.id !== id);
@@ -1313,7 +1424,6 @@
             openModal('serverModal');
         }
         function editServer(id) {
-            event.stopPropagation();
             const servers = getData(STORAGE.SERVERS);
             const server = servers.find(s => s.id === id);
             if (!server) return;
@@ -1355,6 +1465,7 @@
         function filterAccounts() {
             const search = document.getElementById('accountSearch').value.toLowerCase();
             let accounts = getData(STORAGE.ACCOUNTS).filter(a => !a.isSold && a.serverId === selectedServerId);
+            const shikigamiList = getData(STORAGE.SHIKIGAMI);
             
             if (search) {
                 accounts = accounts.filter(a => 
@@ -1375,6 +1486,23 @@
                 return;
             }
             
+            function renderShikigamiIcons(accountShikigami) {
+                if (!accountShikigami || accountShikigami.length === 0) return '';
+                const showCount = Math.min(accountShikigami.length, 4);
+                const moreCount = accountShikigami.length - showCount;
+                let icons = '';
+                for (let i = 0; i < showCount; i++) {
+                    const sName = accountShikigami[i];
+                    const sData = shikigamiList.find(s => s.name === sName);
+                    const icon = sData && sData.icon ? `<img src="${sData.icon}">` : sName.charAt(0);
+                    icons += `<div class="account-shikigami-icon">${icon}</div>`;
+                }
+                if (moreCount > 0) {
+                    icons += `<div class="account-shikigami-more">+${moreCount}</div>`;
+                }
+                return `<div class="account-shikigami-icons">${icons}</div>`;
+            }
+            
             if (viewMode === 'list') {
                 container.innerHTML = accounts.map(a => `
                     <div class="account-card" data-id="${a.id}">
@@ -1382,19 +1510,14 @@
                             <div class="account-info">
                                 <div class="account-name">${a.account}</div>
                                 <div class="account-meta">${a.phone || '未绑定手机'}</div>
-                                ${a.shikigami && a.shikigami.length ? `
-                                    <div class="account-shikigami">
-                                        ${a.shikigami.slice(0, 4).map(s => `<span class="account-shikigami-tag">${s}</span>`).join('')}
-                                        ${a.shikigami.length > 4 ? `<span class="account-shikigami-tag">+${a.shikigami.length - 4}</span>` : ''}
-                                    </div>
-                                ` : ''}
+                                ${renderShikigamiIcons(a.shikigami)}
                             </div>
                             <span class="account-level ${a.level >= 40 ? 'green' : 'red'}">Lv.${a.level}</span>
                         </div>
                         <div class="account-actions">
                             <button class="ios-btn ios-btn-gray ios-btn-sm" onclick="copyAccountInfo('${a.id}')">复制</button>
                             <button class="ios-btn ios-btn-gray ios-btn-sm" onclick="editAccount('${a.id}')">编辑</button>
-                            <button class="ios-btn ios-btn-success ios-btn-sm" onclick="openSellModal('${a.id}')">出售</button>
+                            <button class="ios-btn ios-btn-success ios-btn-sm" onclick="openSellModal('${a.id}')">已售</button>
                             <button class="ios-btn ios-btn-danger ios-btn-sm" onclick="deleteAccount('${a.id}')">删除</button>
                         </div>
                     </div>
@@ -1402,9 +1525,20 @@
             } else {
                 container.innerHTML = '<div class="account-grid">' + accounts.map(a => `
                     <div class="account-grid-card" data-id="${a.id}">
-                        <div class="account-grid-name">${a.account.substring(0, 12)}${a.account.length > 12 ? '...' : ''}</div>
-                        <div class="account-grid-meta">${a.phone ? a.phone.substring(0, 7) + '...' : '无手机'}</div>
-                        <span class="account-level ${a.level >= 40 ? 'green' : 'red'}" style="display:inline-block;">Lv.${a.level}</span>
+                        <div class="account-grid-header">
+                            <div style="flex:1;">
+                                <div class="account-grid-name">${a.account.substring(0, 12)}${a.account.length > 12 ? '...' : ''}</div>
+                                <div class="account-grid-meta">${a.phone ? a.phone.substring(0, 7) + '...' : '无手机'}</div>
+                                ${renderShikigamiIcons(a.shikigami)}
+                            </div>
+                            <span class="account-level ${a.level >= 40 ? 'green' : 'red'}" style="font-size:11px;padding:3px 8px;">Lv.${a.level}</span>
+                        </div>
+                        <div class="account-grid-actions">
+                            <button class="ios-btn ios-btn-gray ios-btn-sm" onclick="copyAccountInfo('${a.id}')">复制</button>
+                            <button class="ios-btn ios-btn-gray ios-btn-sm" onclick="editAccount('${a.id}')">编辑</button>
+                            <button class="ios-btn ios-btn-success ios-btn-sm" onclick="openSellModal('${a.id}')">已售</button>
+                            <button class="ios-btn ios-btn-danger ios-btn-sm" onclick="deleteAccount('${a.id}')">删除</button>
+                        </div>
                     </div>
                 `).join('') + '</div>';
             }
