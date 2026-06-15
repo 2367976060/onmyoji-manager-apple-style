@@ -38,6 +38,13 @@
                     </div>
                     <span class="ios-item-arrow">›</span>
                 </div>
+                <div class="ios-item" onclick="openOperationLogModal()">
+                    <div class="ios-item-content">
+                        <div class="ios-item-title" style="color:var(--ios-purple);">用户操作日志</div>
+                        <div class="ios-item-subtitle">查看所有用户操作记录</div>
+                    </div>
+                    <span class="ios-item-arrow">›</span>
+                </div>
             </div>
             
             <div class="ios-group-title">通用设置</div>
@@ -174,6 +181,16 @@
     <!-- 用户列表管理弹窗 -->
     <div class="ios-modal" id="userManageModal">
         <div class="ios-modal-content">
+    <!-- 用户操作日志弹窗 -->
+    <div class="ios-modal" id="operationLogModal">
+        <div class="ios-modal-content">
+            <div class="ios-modal-header">
+                <h3 class="ios-modal-title">用户操作日志</h3>
+                <button class="ios-modal-close" onclick="closeModal('operationLogModal')">×</button>
+            </div>
+            <div id="operationLogList"></div>
+        </div>
+    </div>
             <div class="ios-modal-header">
                 <h3 class="ios-modal-title">用户列表管理</h3>
                 <button class="ios-modal-close" onclick="closeModal('userManageModal')">×</button>

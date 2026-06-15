@@ -1,6 +1,6 @@
 // ==================== IndexedDB 数据库层 ====================
 const DB_NAME = 'OnmyojiManagerDB';
-const DB_VERSION = 4;
+const DB_VERSION = 5;
 const STORES = {
     USERS: 'users',
     PENDING_REG: 'pending_registrations',
@@ -9,7 +9,8 @@ const STORES = {
     SHIKIGAMI: 'shikigami',
     SETTINGS: 'settings',
     RECYCLE: 'recycle',
-    GRIND_LOG: 'grind_log'
+    GRIND_LOG: 'grind_log',
+    OPERATION_LOGS: 'operation_logs'
 };
 let currentUser = null;
 
@@ -49,6 +50,11 @@ function openDB() {
             }
             if (!db.objectStoreNames.contains(STORES.GRIND_LOG)) {
                 const logStore = db.createObjectStore(STORES.GRIND_LOG, { keyPath: 'id' });
+            }
+            if (!db.objectStoreNames.contains(STORES.OPERATION_LOGS)) {
+                const opStore = db.createObjectStore(STORES.OPERATION_LOGS, { keyPath: 'id' });
+                opStore.createIndex('userId', 'userId', { unique: false });
+            }
                 logStore.createIndex('userId', 'userId', { unique: false });
             }
         };
@@ -877,11 +883,10 @@ async function renderShikigamiManageList() {
     const shikigami = await getData(STORES.SHIKIGAMI);
     const list = document.getElementById('shikigamiManageList');
     const addForm = document.getElementById('shikigamiAddForm');
-    const isAdmin = currentUser && currentUser.isAdmin;
     
-    // 隐藏添加式神表单（非管理员）
+    // 所有用户都可以添加式神
     if (addForm) {
-        addForm.style.display = isAdmin ? 'block' : 'none';
+        addForm.style.display = 'block';
     }
     
     if (list) {
@@ -893,12 +898,10 @@ async function renderShikigamiManageList() {
                     </div>
                     <span>${s.name}</span>
                 </div>
-                ${isAdmin ? `
                 <div style="display:flex;gap:8px;">
                     <button class="ios-btn ios-btn-primary ios-btn-sm" onclick="openEditShikigami('${s.id}')">编辑</button>
                     <button class="ios-btn ios-btn-danger ios-btn-sm" onclick="deleteShikigami('${s.id}')">删除</button>
                 </div>
-                ` : ''}
             </div>
         `).join('');
     }
@@ -940,6 +943,7 @@ async function addShikigami() {
     renderShikigamiManageList();
     renderHome();
     showToast('已添加');
+    await logOperation('add_shikigami', '添加式神: ' + name);
 }
 async function openEditShikigami(id) {
     const shikigami = await getData(STORES.SHIKIGAMI);
@@ -1300,3 +1304,73 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 100);
     }
 });
+
+// ==================== 用户操作日志系统 ====================
+
+async function logOperation(operationType, details) {
+    if (!currentUser) return;
+    
+    try {
+        await dbAdd(STORES.OPERATION_LOGS, {
+            id: generateId(),
+            userId: currentUser.username,
+            username: currentUser.username,
+            operationType: operationType,
+            details: details,
+            timestamp: new Date().toISOString()
+        });
+    } catch (e) {
+        console.error('记录操作日志失败:', e);
+    }
+}
+
+async function getOperationLogs(filterUser = null) {
+    const allLogs = await dbGetAll(STORES.OPERATION_LOGS);
+    let logs = allLogs;
+    
+    if (filterUser) {
+        logs = logs.filter(log => log.userId === filterUser);
+    }
+    
+    logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    return logs;
+}
+
+async function renderOperationLogs(filterUser = null) {
+    const logs = await getOperationLogs(filterUser);
+    const container = document.getElementById('operationLogList');
+    if (!container) return;
+    
+    const operationTypeNames = {
+        'add_server': '添加区服',
+        'add_account': '添加账号',
+        'edit_account': '编辑账号',
+        'delete_account': '删除账号',
+        'add_shikigami': '添加式神',
+        'mark_sold': '标记已售',
+        'grind_complete': '刷号完成',
+        'reset_password': '重置密码',
+        'change_role': '修改权限',
+        'delete_user': '删除用户'
+    };
+    
+    container.innerHTML = logs.length ? logs.map(log => {
+        const typeName = operationTypeNames[log.operationType] || log.operationType;
+        return `
+            <div class="ios-item">
+                <div class="ios-item-content">
+                    <div class="ios-item-title">${log.username}</div>
+                    <div class="ios-item-subtitle">
+                        <strong>${typeName}</strong> · ${new Date(log.timestamp).toLocaleString()}
+                        <br>${log.details || ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('') : '<div class="empty-text" style="text-align:center;padding:20px;">暂无操作日志</div>';
+}
+
+async function openOperationLogModal() {
+    await renderOperationLogs();
+    openModal('operationLogModal');
+}
