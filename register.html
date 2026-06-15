@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>阴阳师账号管理器 - 注册</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .register-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .register-card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .register-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .register-logo-icon {
+            font-size: 64px;
+            margin-bottom: 10px;
+        }
+        .register-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+        }
+        .register-subtitle {
+            font-size: 14px;
+            color: #8E8E93;
+        }
+        .register-form-group {
+            margin-bottom: 20px;
+        }
+        .register-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .register-input {
+            width: 100%;
+            padding: 16px 18px;
+            border: 2px solid #E5E5EA;
+            border-radius: 14px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .register-input:focus {
+            border-color: #007AFF;
+        }
+        .register-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        .register-btn:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+        .register-footer {
+            text-align: center;
+            margin-top: 24px;
+        }
+        .register-link {
+            color: #007AFF;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .register-link:hover {
+            text-decoration: underline;
+        }
+        .register-note {
+            background: #F2F2F7;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-card">
+            <div class="register-logo">
+                <div class="register-logo-icon">🎮</div>
+                <h1 class="register-title">注册申请</h1>
+                <p class="register-subtitle">提交后等待管理员审批</p>
+            </div>
+            
+            <div class="register-note">
+                ⚠️ 注册申请提交后，需要管理员审核通过后才能使用系统。审批通过后会为您创建独立的数据分区。
+            </div>
+            
+            <form id="registerForm">
+                <div class="register-form-group">
+                    <label class="register-label">用户名</label>
+                    <input type="text" class="register-input" id="regUsername" placeholder="请输入用户名" required>
+                </div>
+                
+                <div class="register-form-group">
+                    <label class="register-label">密码</label>
+                    <input type="password" class="register-input" id="regPassword" placeholder="请输入密码" required>
+                </div>
+                
+                <div class="register-form-group">
+                    <label class="register-label">确认密码</label>
+                    <input type="password" class="register-input" id="regPassword2" placeholder="请再次输入密码" required>
+                </div>
+                
+                <div class="register-form-group">
+                    <label class="register-label">联系QQ（选填）</label>
+                    <input type="text" class="register-input" id="regContact" placeholder="方便管理员联系">
+                </div>
+                
+                <button type="submit" class="register-btn">提交注册申请</button>
+            </form>
+            
+            <div class="register-footer">
+                <a href="login.html" class="register-link">已有账号？返回登录</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 注册表单提交
+            document.getElementById('registerForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const username = document.getElementById('regUsername').value.trim();
+                const password = document.getElementById('regPassword').value;
+                const password2 = document.getElementById('regPassword2').value;
+                const contact = document.getElementById('regContact').value.trim();
+                
+                if (password !== password2) {
+                    showToast('两次输入的密码不一致');
+                    return;
+                }
+                
+                if (password.length < 6) {
+                    showToast('密码长度至少6位');
+                    return;
+                }
+                
+                const success = await registerUser(username, password, contact);
+                if (success) {
+                    showToast('注册申请已提交，请等待管理员审批');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
