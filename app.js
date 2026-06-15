@@ -193,16 +193,19 @@ async function registerUser(username, password, contact) {
 }
 function checkAuth() {
     const userStr = sessionStorage.getItem('currentUser');
+    const isLoginPage = window.location.pathname.includes('login.html') || 
+                       window.location.pathname.includes('register.html');
+    
     if (userStr) {
         currentUser = JSON.parse(userStr);
-        const path = window.location.pathname;
-        if (path.includes('login.html') || path.includes('register.html')) {
+        // 已登录用户访问登录/注册页，跳转到首页
+        if (isLoginPage) {
             window.location.href = 'index.html';
         }
         return true;
     } else {
-        const path = window.location.pathname;
-        if (!path.includes('login.html') && !path.includes('register.html')) {
+        // 未登录用户访问非登录/注册页，跳转到登录页
+        if (!isLoginPage) {
             window.location.href = 'login.html';
         }
         return false;
