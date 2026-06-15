@@ -238,7 +238,7 @@
         }
         .ios-btn-sm {
             padding: 6px 10px;
-            font-size: 12px;
+            font-size: 16px;
             border-radius: 8px;
             font-weight: 600;
         }
@@ -529,14 +529,14 @@
             margin-top: 10px;
         }
         .account-shikigami-icon {
-            width: 28px;
-            height: 28px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--ios-blue), #5856D6);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 16px;
             color: white;
             overflow: hidden;
             font-weight: 600;
@@ -548,8 +548,11 @@
             object-fit: cover;
         }
         .account-shikigami-more {
-            width: 28px;
-            height: 28px;
+            width: 44px;
+            height: 44px;
+            font-size: 14px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             background: var(--ios-gray);
             display: flex;
@@ -739,7 +742,7 @@
             background: var(--ios-gray);
         }
         .shikigami-name {
-            font-size: 12px;
+            font-size: 16px;
             color: var(--ios-text-secondary);
             text-align: center;
             font-weight: 500;
@@ -1244,7 +1247,7 @@
         let currentView = 'home';
         let selectedServerId = '';
         let actionSheetServerId = '';
-        let viewMode = 'list';
+        let viewMode = localStorage.getItem('account_view_mode') || 'list';
         let newShikigamiIconData = '';
         let editShikigamiIconData = '';
         function initData() {
@@ -1544,6 +1547,7 @@
             showToast(id ? '已更新' : '已添加');
         });
         function setViewMode(mode) {
+            localStorage.setItem("account_view_mode", mode);
             viewMode = mode;
             document.getElementById('viewListBtn').classList.toggle('active', mode === 'list');
             document.getElementById('viewGridBtn').classList.toggle('active', mode === 'grid');
@@ -1593,13 +1597,15 @@
             if (viewMode === 'list') {
                 container.innerHTML = accounts.map(a => `
                     <div class="account-card" data-id="${a.id}">
-                        <div class="account-header">
-                            <div class="account-info">
-                                <div class="account-name">${a.account}</div>
-                                <div class="account-meta">${a.phone || '未绑定手机'}</div>
-                                ${renderShikigamiIcons(a.shikigami)}
+                        <div class="account-header" style="flex-direction:column;gap:12px;">
+                            ${renderShikigamiIcons(a.shikigami)}
+                            <div class="account-info" style="width:100%;display:flex;justify-content:space-between;align-items:center;">
+                                <div>
+                                    <div class="account-name">${a.account}</div>
+                                    <div class="account-meta">${a.phone || '未绑定手机'}</div>
+                                </div>
+                                <span class="account-level ${a.level >= 40 ? 'green' : 'red'}">Lv.${a.level}</span>
                             </div>
-                            <span class="account-level ${a.level >= 40 ? 'green' : 'red'}">Lv.${a.level}</span>
                         </div>
                         <div class="account-actions">
                             <button class="ios-btn ios-btn-gray ios-btn-sm" onclick="copyAccountInfo('${a.id}')">复制</button>
@@ -1612,11 +1618,13 @@
             } else {
                 container.innerHTML = '<div class="account-grid">' + accounts.map(a => `
                     <div class="account-grid-card" data-id="${a.id}">
+                        <div style="margin-bottom:10px;">
+                            ${renderShikigamiIcons(a.shikigami)}
+                        </div>
                         <div class="account-grid-header">
                             <div style="flex:1;">
                                 <div class="account-grid-name">${a.account.substring(0, 12)}${a.account.length > 12 ? '...' : ''}</div>
                                 <div class="account-grid-meta">${a.phone ? a.phone.substring(0, 7) + '...' : '无手机'}</div>
-                                ${renderShikigamiIcons(a.shikigami)}
                             </div>
                             <span class="account-level ${a.level >= 40 ? 'green' : 'red'}" style="font-size:11px;padding:3px 8px;">Lv.${a.level}</span>
                         </div>
