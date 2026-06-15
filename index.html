@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阴阳师账号管理器</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">⚔️</div>
+                <h1>账号管理器</h1>
+            </div>
+            <nav class="nav-menu">
+                <button class="nav-item active" data-view="accounts">
+                    <span class="nav-icon">👤</span>
+                    <span>账号管理</span>
+                </button>
+                <button class="nav-item" data-view="shikigami">
+                    <span class="nav-icon">🎭</span>
+                    <span>式神管理</span>
+                </button>
+                <button class="nav-item" data-view="stats">
+                    <span class="nav-icon">📊</span>
+                    <span>数据统计</span>
+                </button>
+            </nav>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <!-- 顶部栏 -->
+            <header class="top-bar">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" placeholder="搜索账号或式神...">
+                </div>
+                <div class="user-info">
+                    <span class="current-time" id="currentTime"></span>
+                </div>
+            </header>
+
+            <!-- 账号管理视图 -->
+            <section id="accountsView" class="view active">
+                <div class="view-header">
+                    <h2>账号管理</h2>
+                    <button class="btn-primary" id="addAccountBtn">
+                        <span>+</span> 添加账号
+                    </button>
+                </div>
+
+                <!-- 统计卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="totalAccounts">0</span>
+                            <span class="stat-label">总账号数</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="avgLevel">0</span>
+                            <span class="stat-label">平均等级</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💎</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="totalJade">0</span>
+                            <span class="stat-label">总勾玉</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="totalGold">0</span>
+                            <span class="stat-label">总金币</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 账号列表 -->
+                <div class="account-list" id="accountList">
+                    <!-- 账号卡片将动态生成 -->
+                </div>
+            </section>
+
+            <!-- 式神管理视图 -->
+            <section id="shikigamiView" class="view">
+                <div class="view-header">
+                    <h2>式神管理</h2>
+                    <div class="header-actions">
+                        <select id="accountSelect" class="select-input">
+                            <option value="">选择账号</option>
+                        </select>
+                        <button class="btn-primary" id="addShikigamiBtn">
+                            <span>+</span> 添加式神
+                        </button>
+                    </div>
+                </div>
+
+                <div class="shikigami-grid" id="shikigamiList">
+                    <!-- 式神卡片将动态生成 -->
+                </div>
+            </section>
+
+            <!-- 数据统计视图 -->
+            <section id="statsView" class="view">
+                <div class="view-header">
+                    <h2>数据统计</h2>
+                </div>
+                <div class="stats-overview">
+                    <div class="chart-card">
+                        <h3>账号等级分布</h3>
+                        <div class="chart-placeholder">
+                            <span>📈</span>
+                            <p>等级分布图表</p>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>式神稀有度统计</h3>
+                        <div class="chart-placeholder">
+                            <span>📊</span>
+                            <p>稀有度统计图表</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 添加/编辑账号弹窗 -->
+    <div class="modal" id="accountModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="accountModalTitle">添加账号</h3>
+                <button class="close-btn" onclick="closeAccountModal()">&times;</button>
+            </div>
+            <form id="accountForm">
+                <input type="hidden" id="accountId">
+                <div class="form-group">
+                    <label>账号名称</label>
+                    <input type="text" id="accountName" required placeholder="输入账号名称">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>等级</label>
+                        <input type="number" id="accountLevel" min="1" max="60" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>经验</label>
+                        <input type="number" id="accountExp" min="0" value="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>金币</label>
+                        <input type="number" id="accountGold" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>勾玉</label>
+                        <input type="number" id="accountJade" min="0" value="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>备注</label>
+                    <textarea id="accountNote" rows="2" placeholder="添加备注..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeAccountModal()">取消</button>
+                    <button type="submit" class="btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 添加/编辑式神弹窗 -->
+    <div class="modal" id="shikigamiModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="shikigamiModalTitle">添加式神</h3>
+                <button class="close-btn" onclick="closeShikigamiModal()">&times;</button>
+            </div>
+            <form id="shikigamiForm">
+                <input type="hidden" id="shikigamiId">
+                <input type="hidden" id="shikigamiAccountId">
+                <div class="form-group">
+                    <label>式神名称</label>
+                    <input type="text" id="shikigamiName" required placeholder="输入式神名称">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>稀有度</label>
+                        <select id="shikigamiRarity" class="select-input">
+                            <option value="N">N</option>
+                            <option value="R">R</option>
+                            <option value="SR">SR</option>
+                            <option value="SSR">SSR</option>
+                            <option value="SP">SP</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>等级</label>
+                        <input type="number" id="shikigamiLevel" min="1" max="40" value="1">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>技能等级</label>
+                        <input type="text" id="shikigamiSkills" placeholder="如: 111, 555">
+                    </div>
+                    <div class="form-group">
+                        <label>觉醒</label>
+                        <select id="shikigamiAwakened" class="select-input">
+                            <option value="false">未觉醒</option>
+                            <option value="true">已觉醒</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>御魂配置</label>
+                    <input type="text" id="shikigamiSoul" placeholder="如: 破势 2+2+2">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeShikigamiModal()">取消</button>
+                    <button type="submit" class="btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 删除确认弹窗 -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>确认删除</h3>
+                <button class="close-btn" onclick="closeConfirmModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>确定要删除此项吗？此操作无法撤销。</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeConfirmModal()">取消</button>
+                <button type="button" class="btn-danger" id="confirmDeleteBtn">删除</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
