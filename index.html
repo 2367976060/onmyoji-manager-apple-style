@@ -2,48 +2,28 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>阴阳师账号管理器</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <!-- 侧边栏 -->
-        <aside class="sidebar">
-            <div class="logo">
-                <div class="logo-icon">⚔️</div>
-                <h1>账号管理器</h1>
-            </div>
-            <nav class="nav-menu">
-                <button class="nav-item active" data-view="accounts">
-                    <span class="nav-icon">👤</span>
-                    <span>账号管理</span>
-                </button>
-                <button class="nav-item" data-view="shikigami">
-                    <span class="nav-icon">🎭</span>
-                    <span>式神管理</span>
-                </button>
-                <button class="nav-item" data-view="stats">
-                    <span class="nav-icon">📊</span>
-                    <span>数据统计</span>
-                </button>
-            </nav>
-        </aside>
-
         <!-- 主内容区 -->
         <main class="main-content">
             <!-- 顶部栏 -->
             <header class="top-bar">
+                <div class="app-title">
+                    <span class="app-icon">⚔️</span>
+                    <h1>阴阳师账号管理器</h1>
+                </div>
                 <div class="search-box">
                     <span class="search-icon">🔍</span>
                     <input type="text" id="searchInput" placeholder="搜索账号或式神...">
                 </div>
-                <div class="user-info">
-                    <span class="current-time" id="currentTime"></span>
-                </div>
             </header>
-
             <!-- 账号管理视图 -->
             <section id="accountsView" class="view active">
                 <div class="view-header">
@@ -52,7 +32,6 @@
                         <span>+</span> 添加账号
                     </button>
                 </div>
-
                 <!-- 统计卡片 -->
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -84,13 +63,11 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- 账号列表 -->
                 <div class="account-list" id="accountList">
                     <!-- 账号卡片将动态生成 -->
                 </div>
             </section>
-
             <!-- 式神管理视图 -->
             <section id="shikigamiView" class="view">
                 <div class="view-header">
@@ -104,12 +81,10 @@
                         </button>
                     </div>
                 </div>
-
                 <div class="shikigami-grid" id="shikigamiList">
                     <!-- 式神卡片将动态生成 -->
                 </div>
             </section>
-
             <!-- 数据统计视图 -->
             <section id="statsView" class="view">
                 <div class="view-header">
@@ -133,8 +108,22 @@
                 </div>
             </section>
         </main>
+        <!-- 底部导航栏 - iOS Tab Bar Style -->
+        <nav class="tab-bar">
+            <button class="tab-item active" data-view="accounts">
+                <span class="tab-icon">👤</span>
+                <span class="tab-label">账号</span>
+            </button>
+            <button class="tab-item" data-view="shikigami">
+                <span class="tab-icon">🎭</span>
+                <span class="tab-label">式神</span>
+            </button>
+            <button class="tab-item" data-view="stats">
+                <span class="tab-icon">📊</span>
+                <span class="tab-label">统计</span>
+            </button>
+        </nav>
     </div>
-
     <!-- 添加/编辑账号弹窗 -->
     <div class="modal" id="accountModal">
         <div class="modal-content">
@@ -179,7 +168,6 @@
             </form>
         </div>
     </div>
-
     <!-- 添加/编辑式神弹窗 -->
     <div class="modal" id="shikigamiModal">
         <div class="modal-content">
@@ -234,7 +222,6 @@
             </form>
         </div>
     </div>
-
     <!-- 删除确认弹窗 -->
     <div class="modal" id="confirmModal">
         <div class="modal-content modal-small">
@@ -251,7 +238,6 @@
             </div>
         </div>
     </div>
-
     <script src="app.js"></script>
 </body>
 </html>
