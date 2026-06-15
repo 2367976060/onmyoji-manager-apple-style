@@ -193,18 +193,14 @@ async function registerUser(username, password, contact) {
 }
 function checkAuth() {
     const userStr = sessionStorage.getItem('currentUser');
-    const isLoginPage = window.location.pathname.includes('login.html') || 
-                       window.location.pathname.includes('register.html');
-    
     if (userStr) {
         currentUser = JSON.parse(userStr);
-        // 已登录用户访问登录/注册页，跳转到首页
-        if (isLoginPage) {
-            window.location.href = 'index.html';
-        }
         return true;
     } else {
-        // 未登录用户访问非登录/注册页，跳转到登录页
+        window.location.href = 'login.html';
+        return false;
+    }
+}
         if (!isLoginPage) {
             window.location.href = 'login.html';
         }
@@ -1271,47 +1267,45 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    const path = window.location.pathname;
-    if (path.includes('index.html') || path === '/' || path === '') {
+    // 登录页和注册页不做登录检查
+    const isLoginPage = document.getElementById('loginForm') !== null;
+    const isRegisterPage = document.getElementById('registerForm') !== null;
+    
+    if (!isLoginPage && !isRegisterPage) {
+        // 非登录页检查登录状态
         checkAuth();
-        renderHome();
-    } else if (path.includes('servers.html')) {
-        checkAuth();
-        renderServerList();
-    } else if (path.includes('accounts.html')) {
-        checkAuth();
-        const urlParams = new URLSearchParams(window.location.search);
-        const serverId = urlParams.get('serverId');
-        if (serverId) {
-            selectedServerId = serverId;
-            document.getElementById('currentServerId').value = serverId;
-            filterAccounts();
-        }
-        const savedMode = localStorage.getItem('account_view_mode') || 'list';
-        viewMode = savedMode;
-    } else if (path.includes('grinding.html')) {
-        checkAuth();
-        renderGrind();
-    } else if (path.includes('sales.html')) {
-        checkAuth();
-        renderSales();
-    } else if (path.includes('settings.html')) {
-        checkAuth();
-        setTimeout(() => {
-            if (currentUser && currentUser.isAdmin) {
-                const adminTitle = document.getElementById('adminSectionTitle');
-                const adminSection = document.getElementById('adminSection');
-                if (adminTitle) adminTitle.style.display = 'block';
-                if (adminSection) adminSection.style.display = 'block';
+        
+        // 根据页面元素判断页面类型，执行对应初始化
+        if (document.getElementById('statTotal')) {
+            renderHome();
+        } else if (document.getElementById('serverList')) {
+            renderServerList();
+        } else if (document.getElementById('accountList')) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const serverId = urlParams.get('serverId');
+            if (serverId) {
+                selectedServerId = serverId;
+                document.getElementById('currentServerId').value = serverId;
+                filterAccounts();
             }
-        }, 100);
+            const savedMode = localStorage.getItem('account_view_mode') || 'list';
+            viewMode = savedMode;
+        } else if (document.getElementById('grindTodo')) {
+            renderGrind();
+        } else if (document.getElementById('saleToday')) {
+            renderSales();
+        } else if (document.getElementById('adminSection')) {
+            setTimeout(() => {
+                if (currentUser && currentUser.isAdmin) {
+                    const adminTitle = document.getElementById('adminSectionTitle');
+                    const adminSection = document.getElementById('adminSection');
+                    if (adminTitle) adminTitle.style.display = 'block';
+                    if (adminSection) adminSection.style.display = 'block';
+                }
+            }, 100);
+        }
     }
 });
-
-// ==================== 用户操作日志系统 ====================
-
-async function logOperation(operationType, details) {
-    if (!currentUser) return;
     
     try {
         await dbAdd(STORES.OPERATION_LOGS, {
