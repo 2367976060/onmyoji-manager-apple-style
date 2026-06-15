@@ -262,14 +262,14 @@ class UIRenderer {
 // 全局变量
 let deleteTarget = { type: null, id: null };
 
-// 视图切换
+// 视图切换 - 修复：使用 .tab-item 替代 .nav-item
 function switchView(viewName) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.tab-item').forEach(n => n.classList.remove('active'));
     
     document.getElementById(viewName + 'View').classList.add('active');
-    document.querySelector(`[data-view="${viewName}"]`).classList.add('active');
-
+    document.querySelector(`.tab-item[data-view="${viewName}"]`).classList.add('active');
+    
     if (viewName === 'shikigami') {
         UIRenderer.renderAccountSelect();
     }
@@ -286,7 +286,7 @@ function openAddAccountModal() {
 function editAccount(id) {
     const account = AccountManager.getById(id);
     if (!account) return;
-
+    
     document.getElementById('accountModalTitle').textContent = '编辑账号';
     document.getElementById('accountId').value = account.id;
     document.getElementById('accountName').value = account.name;
@@ -309,7 +309,7 @@ function openAddShikigamiModal() {
         alert('请先选择一个账号');
         return;
     }
-
+    
     document.getElementById('shikigamiModalTitle').textContent = '添加式神';
     document.getElementById('shikigamiForm').reset();
     document.getElementById('shikigamiId').value = '';
@@ -320,7 +320,7 @@ function openAddShikigamiModal() {
 function editShikigami(id) {
     const shikigami = ShikigamiManager.getById(id);
     if (!shikigami) return;
-
+    
     document.getElementById('shikigamiModalTitle').textContent = '编辑式神';
     document.getElementById('shikigamiId').value = shikigami.id;
     document.getElementById('shikigamiAccountId').value = shikigami.accountId;
@@ -373,106 +373,124 @@ function refreshAll() {
     UIRenderer.renderAccountSelect();
 }
 
-// 更新时间
-function updateTime() {
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('zh-CN', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: false 
-    });
-    const dateStr = now.toLocaleDateString('zh-CN', { 
-        month: 'short', 
-        day: 'numeric',
-        weekday: 'short'
-    });
-    document.getElementById('currentTime').textContent = `${dateStr} ${timeStr}`;
+// 关闭弹窗按钮
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
 }
 
 // 事件监听
 document.addEventListener('DOMContentLoaded', function() {
-    // 导航切换
-    document.querySelectorAll('.nav-item').forEach(item => {
+    // 导航切换 - 修复：使用 .tab-item 替代 .nav-item
+    document.querySelectorAll('.tab-item').forEach(item => {
         item.addEventListener('click', () => switchView(item.dataset.view));
     });
 
     // 添加账号按钮
-    document.getElementById('addAccountBtn').addEventListener('click', openAddAccountModal);
+    const addAccountBtn = document.getElementById('addAccountBtn');
+    if (addAccountBtn) {
+        addAccountBtn.addEventListener('click', openAddAccountModal);
+    }
 
     // 添加式神按钮
-    document.getElementById('addShikigamiBtn').addEventListener('click', openAddShikigamiModal);
+    const addShikigamiBtn = document.getElementById('addShikigamiBtn');
+    if (addShikigamiBtn) {
+        addShikigamiBtn.addEventListener('click', openAddShikigamiModal);
+    }
 
     // 账号表单提交
-    document.getElementById('accountForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const accountData = {
-            name: document.getElementById('accountName').value,
-            level: document.getElementById('accountLevel').value,
-            exp: document.getElementById('accountExp').value,
-            gold: document.getElementById('accountGold').value,
-            jade: document.getElementById('accountJade').value,
-            note: document.getElementById('accountNote').value
-        };
-
-        const accountId = document.getElementById('accountId').value;
-        if (accountId) {
-            AccountManager.update(accountId, accountData);
-        } else {
-            AccountManager.add(accountData);
-        }
-
-        closeAccountModal();
-        refreshAll();
-    });
+    const accountForm = document.getElementById('accountForm');
+    if (accountForm) {
+        accountForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const accountData = {
+                name: document.getElementById('accountName').value,
+                level: document.getElementById('accountLevel').value,
+                exp: document.getElementById('accountExp').value,
+                gold: document.getElementById('accountGold').value,
+                jade: document.getElementById('accountJade').value,
+                note: document.getElementById('accountNote').value
+            };
+            
+            const accountId = document.getElementById('accountId').value;
+            if (accountId) {
+                AccountManager.update(accountId, accountData);
+            } else {
+                AccountManager.add(accountData);
+            }
+            
+            closeAccountModal();
+            refreshAll();
+        });
+    }
 
     // 式神表单提交
-    document.getElementById('shikigamiForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const shikigamiData = {
-            accountId: document.getElementById('shikigamiAccountId').value,
-            name: document.getElementById('shikigamiName').value,
-            rarity: document.getElementById('shikigamiRarity').value,
-            level: document.getElementById('shikigamiLevel').value,
-            skills: document.getElementById('shikigamiSkills').value,
-            awakened: document.getElementById('shikigamiAwakened').value,
-            soul: document.getElementById('shikigamiSoul').value
-        };
-
-        const shikigamiId = document.getElementById('shikigamiId').value;
-        if (shikigamiId) {
-            ShikigamiManager.update(shikigamiId, shikigamiData);
-        } else {
-            ShikigamiManager.add(shikigamiData);
-        }
-
-        closeShikigamiModal();
-        const accountId = document.getElementById('accountSelect').value;
-        UIRenderer.renderShikigami(accountId);
-        UIRenderer.renderStats();
-    });
+    const shikigamiForm = document.getElementById('shikigamiForm');
+    if (shikigamiForm) {
+        shikigamiForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const shikigamiData = {
+                accountId: document.getElementById('shikigamiAccountId').value,
+                name: document.getElementById('shikigamiName').value,
+                rarity: document.getElementById('shikigamiRarity').value,
+                level: document.getElementById('shikigamiLevel').value,
+                skills: document.getElementById('shikigamiSkills').value,
+                awakened: document.getElementById('shikigamiAwakened').value,
+                soul: document.getElementById('shikigamiSoul').value
+            };
+            
+            const shikigamiId = document.getElementById('shikigamiId').value;
+            if (shikigamiId) {
+                ShikigamiManager.update(shikigamiId, shikigamiData);
+            } else {
+                ShikigamiManager.add(shikigamiData);
+            }
+            
+            closeShikigamiModal();
+            const accountId = document.getElementById('accountSelect').value;
+            UIRenderer.renderShikigami(accountId);
+            UIRenderer.renderStats();
+        });
+    }
 
     // 账号选择变化
-    document.getElementById('accountSelect').addEventListener('change', function() {
-        UIRenderer.renderShikigami(this.value);
-    });
+    const accountSelect = document.getElementById('accountSelect');
+    if (accountSelect) {
+        accountSelect.addEventListener('change', function() {
+            UIRenderer.renderShikigami(this.value);
+        });
+    }
 
     // 搜索
-    document.getElementById('searchInput').addEventListener('input', function() {
-        const query = this.value;
-        const activeView = document.querySelector('.view.active').id;
-        
-        if (activeView === 'accountsView') {
-            UIRenderer.renderAccounts(query);
-        } else if (activeView === 'shikigamiView') {
-            const accountId = document.getElementById('accountSelect').value;
-            UIRenderer.renderShikigami(accountId, query);
-        }
-    });
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value;
+            const activeView = document.querySelector('.view.active');
+            
+            if (activeView) {
+                if (activeView.id === 'accountsView') {
+                    UIRenderer.renderAccounts(query);
+                } else if (activeView.id === 'shikigamiView') {
+                    const accountId = document.getElementById('accountSelect').value;
+                    UIRenderer.renderShikigami(accountId, query);
+                }
+            }
+        });
+    }
 
     // 确认删除
-    document.getElementById('confirmDeleteBtn').addEventListener('click', executeDelete);
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', executeDelete);
+    }
+
+    // 取消删除
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    if (cancelDeleteBtn) {
+        cancelDeleteBtn.addEventListener('click', closeConfirmModal);
+    }
 
     // 点击弹窗外部关闭
     document.querySelectorAll('.modal').forEach(modal => {
@@ -485,8 +503,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 初始化
     refreshAll();
-    updateTime();
-    setInterval(updateTime, 1000);
 
     // 添加示例数据（如果为空）
     if (AccountManager.getAll().length === 0) {
