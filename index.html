@@ -6,238 +6,1793 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>阴阳师账号管理器</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        :root {
+            --bg-primary: #F8F6F3;
+            --bg-card: #FFFFFF;
+            --text-primary: #2D2A26;
+            --text-secondary: #8B8680;
+            --primary: #6B4A3A;
+            --success: #2FA36B;
+            --danger: #E15B64;
+            --warning: #E8A838;
+            --border: #E8E4DF;
+            --shadow: 0 2px 8px rgba(107, 74, 58, 0.06);
+            --radius: 24px;
+            --radius-sm: 12px;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-bottom: 88px;
+            padding-bottom: calc(88px + env(safe-area-inset-bottom));
+        }
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        /* 顶部安全区域 */
+        .safe-top {
+            height: env(safe-area-inset-top);
+            background: var(--bg-primary);
+        }
+        /* 视图切换 */
+        .view {
+            display: none;
+            padding: 16px;
+            animation: fadeIn 0.3s ease;
+        }
+        .view.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* 卡片通用样式 */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow);
+            margin-bottom: 12px;
+        }
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        /* 统计网格 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .stat-value.success { color: var(--success); }
+        .stat-value.danger { color: var(--danger); }
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        /* 排行列表 */
+        .rank-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .rank-item:last-child {
+            border-bottom: none;
+        }
+        .rank-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .rank-num {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .rank-num.gold { background: linear-gradient(135deg, #FFD700, #FFA500); }
+        .rank-num.silver { background: linear-gradient(135deg, #C0C0C0, #A0A0A0); }
+        .rank-num.bronze { background: linear-gradient(135deg, #CD7F32, #B87333); }
+        .rank-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .rank-count {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--success);
+        }
+        /* 式神网格 */
+        .shikigami-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        .shikigami-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            transition: background 0.2s;
+        }
+        .shikigami-item:active {
+            background: var(--border);
+        }
+        .shikigami-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #8B6B5A);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+        .shikigami-name {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+        /* 底部导航 */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom));
+            box-shadow: 0 -2px 12px rgba(107, 74, 58, 0.08);
+            z-index: 100;
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px 12px;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+        .tab-item.active {
+            color: var(--primary);
+        }
+        .tab-icon {
+            font-size: 22px;
+        }
+        .tab-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+        /* 按钮样式 */
+        .btn {
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn:active { opacity: 0.8; }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            background: var(--bg-card);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus {
+            border-color: var(--primary);
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        /* 账号卡片 */
+        .account-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow);
+            margin-bottom: 12px;
+            transition: transform 0.2s;
+        }
+        .account-card.highlight {
+            animation: highlight 1s ease;
+        }
+        @keyframes highlight {
+            0%, 100% { background: var(--bg-card); }
+            50% { background: #FFF5E6; }
+        }
+        .account-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .account-info {
+            flex: 1;
+        }
+        .account-account {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            word-break: break-all;
+        }
+        .account-server {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .account-level {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .account-level.success {
+            background: rgba(47, 163, 107, 0.1);
+            color: var(--success);
+        }
+        .account-level.danger {
+            background: rgba(225, 91, 100, 0.1);
+            color: var(--danger);
+        }
+        .account-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            justify-content: flex-end;
+        }
+        .account-shikigami {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .account-shikigami-tag {
+            padding: 2px 8px;
+            background: var(--bg-primary);
+            border-radius: 12px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        /* 搜索筛选 */
+        .search-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            background: var(--bg-card);
+            outline: none;
+        }
+        .filter-btn {
+            padding: 12px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+        }
+        /* 区服标签 */
+        .server-tabs {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+            scrollbar-width: none;
+        }
+        .server-tabs::-webkit-scrollbar {
+            display: none;
+        }
+        .server-tab {
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 13px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .server-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        /* 视图切换按钮 */
+        .view-toggle {
+            display: flex;
+            background: var(--bg-card);
+            border-radius: var(--radius-sm);
+            padding: 4px;
+            margin-bottom: 16px;
+        }
+        .view-toggle-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .view-toggle-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        /* 刷号卡片 */
+        .grind-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .grind-info {
+            flex: 1;
+        }
+        .grind-account {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .grind-server {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .grind-progress {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), #4CC48A);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        .progress-text {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--success);
+            min-width: 40px;
+            text-align: right;
+        }
+        /* 销售记录 */
+        .sale-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .sale-item:last-child {
+            border-bottom: none;
+        }
+        .sale-info {
+            flex: 1;
+        }
+        .sale-account {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        .sale-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        .sale-price {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--success);
+        }
+        /* 设置项 */
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        .setting-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .setting-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        .setting-info {
+            flex: 1;
+        }
+        .setting-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        .setting-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        .setting-arrow {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        /* 弹窗 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 1000;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: var(--bg-card);
+            width: 100%;
+            max-height: 90vh;
+            border-radius: var(--radius) var(--radius) 0 0;
+            padding: 20px;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg-primary);
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .modal-footer .btn {
+            flex: 1;
+        }
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        .empty-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        /* 标签 */
+        .tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .tag-success {
+            background: rgba(47, 163, 107, 0.1);
+            color: var(--success);
+        }
+        .tag-danger {
+            background: rgba(225, 91, 100, 0.1);
+            color: var(--danger);
+        }
+        .tag-warning {
+            background: rgba(232, 168, 56, 0.1);
+            color: var(--warning);
+        }
+        /* 双列视图 */
+        .account-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .account-grid-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 12px;
+            box-shadow: var(--shadow);
+        }
+        .account-grid-account {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            word-break: break-all;
+        }
+        .account-grid-server {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        /* 展开表单 */
+        .expand-form {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .expand-form.active {
+            max-height: 2000px;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        /* 日期筛选 */
+        .date-filter {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .date-input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            background: var(--bg-card);
+        }
+        /* 回收站 */
+        .recycle-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .recycle-info {
+            flex: 1;
+        }
+        .recycle-account {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .recycle-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+    </style>
 </head>
 <body>
+    <div class="safe-top"></div>
     <div class="container">
-        <!-- 主内容区 -->
-        <main class="main-content">
-            <!-- 顶部栏 -->
-            <header class="top-bar">
-                <div class="app-title">
-                    <span class="app-icon">⚔️</span>
-                    <h1>阴阳师账号管理器</h1>
+        <!-- 首页 -->
+        <section id="homeView" class="view active">
+            <div class="section-header">
+                <h2 class="section-title">📊 数据概览</h2>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="statTotal">0</div>
+                    <div class="stat-label">账号总数</div>
                 </div>
-                <div class="search-box">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" id="searchInput" placeholder="搜索账号或式神...">
+                <div class="stat-card">
+                    <div class="stat-value danger" id="statTodo">0</div>
+                    <div class="stat-label">今日待刷</div>
                 </div>
-            </header>
-            <!-- 账号管理视图 -->
-            <section id="accountsView" class="view active">
-                <div class="view-header">
-                    <h2>账号管理</h2>
-                    <button class="btn-primary" id="addAccountBtn">
-                        <span>+</span> 添加账号
-                    </button>
+                <div class="stat-card">
+                    <div class="stat-value success" id="statLevel40">0</div>
+                    <div class="stat-label">已达40级</div>
                 </div>
-                <!-- 统计卡片 -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">👥</div>
-                        <div class="stat-info">
-                            <span class="stat-value" id="totalAccounts">0</span>
-                            <span class="stat-label">总账号数</span>
+                <div class="stat-card">
+                    <div class="stat-value" id="statUnder40">0</div>
+                    <div class="stat-label">未达40级</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">🏆 区服库存排行 Top3</div>
+                <div id="serverRankList"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">🎭 式神速查</div>
+                <div class="shikigami-grid" id="shikigamiQuick"></div>
+            </div>
+        </section>
+        <!-- 账号库 -->
+        <section id="accountsView" class="view">
+            <div class="section-header">
+                <h2 class="section-title">📦 账号库</h2>
+                <button class="btn btn-primary btn-sm" onclick="openAddAccountModal()">+ 添加账号</button>
+            </div>
+            <div class="search-bar">
+                <input type="text" class="search-input" id="accountSearch" placeholder="搜索账号、区服、式神..." oninput="filterAccounts()">
+                <button class="filter-btn" onclick="toggleFilter()">🔍</button>
+            </div>
+            <div class="server-tabs" id="serverTabs"></div>
+            <div class="view-toggle">
+                <button class="view-toggle-btn active" onclick="setViewMode('list')">列表</button>
+                <button class="view-toggle-btn" onclick="setViewMode('grid')">双列</button>
+            </div>
+            <div id="accountList"></div>
+        </section>
+        <!-- 刷号管理 -->
+        <section id="grindView" class="view">
+            <div class="section-header">
+                <h2 class="section-title">⚔️ 刷号管理</h2>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value danger" id="grindTodo">0</div>
+                    <div class="stat-label">今日待刷</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value success" id="grindDone">0</div>
+                    <div class="stat-label">今日已刷</div>
+                </div>
+            </div>
+            <div id="grindList"></div>
+        </section>
+        <!-- 销售管理 -->
+        <section id="salesView" class="view">
+            <div class="section-header">
+                <h2 class="section-title">💰 销售管理</h2>
+            </div>
+            <div class="date-filter">
+                <input type="date" class="date-input" id="saleStartDate" onchange="filterSales()">
+                <input type="date" class="date-input" id="saleEndDate" onchange="filterSales()">
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value success" id="saleToday">0</div>
+                    <div class="stat-label">今日销售额</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value success" id="saleMonth">0</div>
+                    <div class="stat-label">本月销售额</div>
+                </div>
+                <div class="stat-card" style="grid-column: span 2;">
+                    <div class="stat-value success" id="saleTotal">0</div>
+                    <div class="stat-label">累计销售额</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                <button class="btn btn-outline btn-sm" style="flex:1" onclick="exportSales('txt')">导出TXT</button>
+                <button class="btn btn-outline btn-sm" style="flex:1" onclick="exportSales('json')">导出JSON</button>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 销售记录</div>
+                <div id="saleList"></div>
+            </div>
+        </section>
+        <!-- 设置 -->
+        <section id="settingsView" class="view">
+            <div class="section-header">
+                <h2 class="section-title">⚙️ 设置</h2>
+            </div>
+            <div class="card">
+                <div class="setting-item" onclick="openDefaultSettings()">
+                    <div class="setting-left">
+                        <div class="setting-icon" style="background: rgba(107, 74, 58, 0.1);">🔑</div>
+                        <div class="setting-info">
+                            <div class="setting-title">默认配置</div>
+                            <div class="setting-desc">默认密码、手机号</div>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">⭐</div>
-                        <div class="stat-info">
-                            <span class="stat-value" id="avgLevel">0</span>
-                            <span class="stat-label">平均等级</span>
+                    <span class="setting-arrow">›</span>
+                </div>
+                <div class="setting-item" onclick="openServerManage()">
+                    <div class="setting-left">
+                        <div class="setting-icon" style="background: rgba(47, 163, 107, 0.1);">🌐</div>
+                        <div class="setting-info">
+                            <div class="setting-title">区服管理</div>
+                            <div class="setting-desc">添加、编辑、删除区服</div>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">💎</div>
-                        <div class="stat-info">
-                            <span class="stat-value" id="totalJade">0</span>
-                            <span class="stat-label">总勾玉</span>
+                    <span class="setting-arrow">›</span>
+                </div>
+                <div class="setting-item" onclick="openShikigamiManage()">
+                    <div class="setting-left">
+                        <div class="setting-icon" style="background: rgba(225, 91, 100, 0.1);">🎭</div>
+                        <div class="setting-info">
+                            <div class="setting-title">式神图鉴</div>
+                            <div class="setting-desc">管理式神列表</div>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">💰</div>
-                        <div class="stat-info">
-                            <span class="stat-value" id="totalGold">0</span>
-                            <span class="stat-label">总金币</span>
+                    <span class="setting-arrow">›</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="setting-item" onclick="exportData()">
+                    <div class="setting-left">
+                        <div class="setting-icon" style="background: rgba(232, 168, 56, 0.1);">📤</div>
+                        <div class="setting-info">
+                            <div class="setting-title">备份导出</div>
+                            <div class="setting-desc">导出所有数据为JSON</div>
                         </div>
                     </div>
+                    <span class="setting-arrow">›</span>
                 </div>
-                <!-- 账号列表 -->
-                <div class="account-list" id="accountList">
-                    <!-- 账号卡片将动态生成 -->
-                </div>
-            </section>
-            <!-- 式神管理视图 -->
-            <section id="shikigamiView" class="view">
-                <div class="view-header">
-                    <h2>式神管理</h2>
-                    <div class="header-actions">
-                        <select id="accountSelect" class="select-input">
-                            <option value="">选择账号</option>
-                        </select>
-                        <button class="btn-primary" id="addShikigamiBtn">
-                            <span>+</span> 添加式神
-                        </button>
-                    </div>
-                </div>
-                <div class="shikigami-grid" id="shikigamiList">
-                    <!-- 式神卡片将动态生成 -->
-                </div>
-            </section>
-            <!-- 数据统计视图 -->
-            <section id="statsView" class="view">
-                <div class="view-header">
-                    <h2>数据统计</h2>
-                </div>
-                <div class="stats-overview">
-                    <div class="chart-card">
-                        <h3>账号等级分布</h3>
-                        <div class="chart-placeholder">
-                            <span>📈</span>
-                            <p>等级分布图表</p>
+                <div class="setting-item" onclick="document.getElementById('importFile').click()">
+                    <div class="setting-left">
+                        <div class="setting-icon" style="background: rgba(107, 74, 58, 0.1);">📥</div>
+                        <div class="setting-info">
+                            <div class="setting-title">备份导入</div>
+                            <div class="setting-desc">从JSON文件恢复数据</div>
                         </div>
                     </div>
-                    <div class="chart-card">
-                        <h3>式神稀有度统计</h3>
-                        <div class="chart-placeholder">
-                            <span>📊</span>
-                            <p>稀有度统计图表</p>
+                    <span class="setting-arrow">›</span>
+                </div>
+                <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(event)">
+            </div>
+            <div class="card">
+                <div class="setting-item" onclick="openRecycleBin()">
+                    <div class="setting-left">
+                        <div class="setting-icon" style="background: rgba(225, 91, 100, 0.1);">🗑️</div>
+                        <div class="setting-info">
+                            <div class="setting-title">回收站</div>
+                            <div class="setting-desc">已删除的账号</div>
                         </div>
                     </div>
+                    <span class="setting-arrow">›</span>
                 </div>
-            </section>
-        </main>
-        <!-- 底部导航栏 - iOS Tab Bar Style -->
-        <nav class="tab-bar">
-            <button class="tab-item active" data-view="accounts">
-                <span class="tab-icon">👤</span>
-                <span class="tab-label">账号</span>
-            </button>
-            <button class="tab-item" data-view="shikigami">
-                <span class="tab-icon">🎭</span>
-                <span class="tab-label">式神</span>
-            </button>
-            <button class="tab-item" data-view="stats">
-                <span class="tab-icon">📊</span>
-                <span class="tab-label">统计</span>
-            </button>
-        </nav>
+                <div class="setting-item" onclick="openDataCenter()">
+                    <div class="setting-left">
+                        <div class="setting-icon" style="background: rgba(47, 163, 107, 0.1);">📈</div>
+                        <div class="setting-info">
+                            <div class="setting-title">数据统计中心</div>
+                            <div class="setting-desc">详细数据分析</div>
+                        </div>
+                    </div>
+                    <span class="setting-arrow">›</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="setting-item" onclick="clearAllData()">
+                    <div class="setting-left">
+                        <div class="setting-icon" style="background: rgba(225, 91, 100, 0.1);">⚠️</div>
+                        <div class="setting-info">
+                            <div class="setting-title">清空所有数据</div>
+                            <div class="setting-desc">不可恢复，请谨慎操作</div>
+                        </div>
+                    </div>
+                    <span class="setting-arrow">›</span>
+                </div>
+            </div>
+        </section>
     </div>
+    <!-- 底部导航 -->
+    <nav class="tab-bar">
+        <button class="tab-item active" onclick="switchView('home')">
+            <span class="tab-icon">🏠</span>
+            <span class="tab-label">首页</span>
+        </button>
+        <button class="tab-item" onclick="switchView('accounts')">
+            <span class="tab-icon">📦</span>
+            <span class="tab-label">账号库</span>
+        </button>
+        <button class="tab-item" onclick="switchView('grind')">
+            <span class="tab-icon">⚔️</span>
+            <span class="tab-label">刷号</span>
+        </button>
+        <button class="tab-item" onclick="switchView('sales')">
+            <span class="tab-icon">💰</span>
+            <span class="tab-label">销售</span>
+        </button>
+        <button class="tab-item" onclick="switchView('settings')">
+            <span class="tab-icon">⚙️</span>
+            <span class="tab-label">设置</span>
+        </button>
+    </nav>
     <!-- 添加/编辑账号弹窗 -->
     <div class="modal" id="accountModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="accountModalTitle">添加账号</h3>
-                <button class="close-btn" onclick="closeAccountModal()">&times;</button>
+                <h3 class="modal-title" id="accountModalTitle">添加账号</h3>
+                <button class="modal-close" onclick="closeModal('accountModal')">×</button>
             </div>
             <form id="accountForm">
-                <input type="hidden" id="accountId">
+                <input type="hidden" id="editAccountId">
                 <div class="form-group">
-                    <label>账号名称</label>
-                    <input type="text" id="accountName" required placeholder="输入账号名称">
+                    <label class="form-label">区服</label>
+                    <select class="form-input" id="accountServer" required></select>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>等级</label>
-                        <input type="number" id="accountLevel" min="1" max="60" value="1">
+                        <label class="form-label">账号</label>
+                        <input type="text" class="form-input" id="accountName" required placeholder="自动补@163.com">
                     </div>
                     <div class="form-group">
-                        <label>经验</label>
-                        <input type="number" id="accountExp" min="0" value="0">
+                        <label class="form-label">密码</label>
+                        <input type="text" class="form-input" id="accountPassword" placeholder="默认密码">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>金币</label>
-                        <input type="number" id="accountGold" min="0" value="0">
+                        <label class="form-label">等级</label>
+                        <input type="number" class="form-input" id="accountLevel" min="1" max="60" value="1">
                     </div>
                     <div class="form-group">
-                        <label>勾玉</label>
-                        <input type="number" id="accountJade" min="0" value="0">
+                        <label class="form-label">手机号</label>
+                        <input type="text" class="form-input" id="accountPhone" placeholder="默认手机号">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>备注</label>
-                    <textarea id="accountNote" rows="2" placeholder="添加备注..."></textarea>
+                    <label class="form-label">式神（逗号分隔）</label>
+                    <input type="text" class="form-input" id="accountShikigami" placeholder="阿修罗,因幡辉夜姬">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">备注</label>
+                    <textarea class="form-input" id="accountRemark" rows="2" placeholder="添加备注..."></textarea>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeAccountModal()">取消</button>
-                    <button type="submit" class="btn-primary">保存</button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal('accountModal')">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
                 </div>
             </form>
         </div>
     </div>
-    <!-- 添加/编辑式神弹窗 -->
+    <!-- 标记已售弹窗 -->
+    <div class="modal" id="sellModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">标记已售</h3>
+                <button class="modal-close" onclick="closeModal('sellModal')">×</button>
+            </div>
+            <form id="sellForm">
+                <input type="hidden" id="sellAccountId">
+                <div class="form-group">
+                    <label class="form-label">出售价格</label>
+                    <input type="number" class="form-input" id="sellPrice" required placeholder="输入售价">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('sellModal')">取消</button>
+                    <button type="submit" class="btn btn-success">确认出售</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- 默认设置弹窗 -->
+    <div class="modal" id="defaultModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">默认配置</h3>
+                <button class="modal-close" onclick="closeModal('defaultModal')">×</button>
+            </div>
+            <form id="defaultForm">
+                <div class="form-group">
+                    <label class="form-label">默认密码</label>
+                    <input type="text" class="form-input" id="defaultPassword" placeholder="147258369Hh">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">默认手机号</label>
+                    <input type="text" class="form-input" id="defaultPhone" placeholder="默认手机号">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('defaultModal')">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- 区服管理弹窗 -->
+    <div class="modal" id="serverModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">区服管理</h3>
+                <button class="modal-close" onclick="closeModal('serverModal')">×</button>
+            </div>
+            <div class="form-group">
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" class="form-input" id="newServerName" placeholder="新区服名称" style="flex:1">
+                    <button type="button" class="btn btn-primary" onclick="addServer()">添加</button>
+                </div>
+            </div>
+            <div id="serverManageList"></div>
+        </div>
+    </div>
+    <!-- 式神管理弹窗 -->
     <div class="modal" id="shikigamiModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="shikigamiModalTitle">添加式神</h3>
-                <button class="close-btn" onclick="closeShikigamiModal()">&times;</button>
+                <h3 class="modal-title">式神图鉴管理</h3>
+                <button class="modal-close" onclick="closeModal('shikigamiModal')">×</button>
             </div>
-            <form id="shikigamiForm">
-                <input type="hidden" id="shikigamiId">
-                <input type="hidden" id="shikigamiAccountId">
-                <div class="form-group">
-                    <label>式神名称</label>
-                    <input type="text" id="shikigamiName" required placeholder="输入式神名称">
+            <div class="form-group">
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" class="form-input" id="newShikigamiName" placeholder="新式神名称" style="flex:1">
+                    <button type="button" class="btn btn-primary" onclick="addShikigami()">添加</button>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>稀有度</label>
-                        <select id="shikigamiRarity" class="select-input">
-                            <option value="N">N</option>
-                            <option value="R">R</option>
-                            <option value="SR">SR</option>
-                            <option value="SSR">SSR</option>
-                            <option value="SP">SP</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>等级</label>
-                        <input type="number" id="shikigamiLevel" min="1" max="40" value="1">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>技能等级</label>
-                        <input type="text" id="shikigamiSkills" placeholder="如: 111, 555">
-                    </div>
-                    <div class="form-group">
-                        <label>觉醒</label>
-                        <select id="shikigamiAwakened" class="select-input">
-                            <option value="false">未觉醒</option>
-                            <option value="true">已觉醒</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>御魂配置</label>
-                    <input type="text" id="shikigamiSoul" placeholder="如: 破势 2+2+2">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeShikigamiModal()">取消</button>
-                    <button type="submit" class="btn-primary">保存</button>
-                </div>
-            </form>
+            </div>
+            <div id="shikigamiManageList"></div>
         </div>
     </div>
-    <!-- 删除确认弹窗 -->
-    <div class="modal" id="confirmModal">
-        <div class="modal-content modal-small">
+    <!-- 回收站弹窗 -->
+    <div class="modal" id="recycleModal">
+        <div class="modal-content">
             <div class="modal-header">
-                <h3>确认删除</h3>
-                <button class="close-btn" onclick="closeConfirmModal()">&times;</button>
+                <h3 class="modal-title">回收站</h3>
+                <button class="modal-close" onclick="closeModal('recycleModal')">×</button>
             </div>
-            <div class="modal-body">
-                <p>确定要删除此项吗？此操作无法撤销。</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-secondary" onclick="closeConfirmModal()">取消</button>
-                <button type="button" class="btn-danger" id="confirmDeleteBtn">删除</button>
-            </div>
+            <div id="recycleList"></div>
         </div>
     </div>
-    <script src="app.js"></script>
+    <!-- 式神账号列表弹窗 -->
+    <div class="modal" id="shikigamiAccountsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="shikigamiAccountsTitle">拥有该式神的账号</h3>
+                <button class="modal-close" onclick="closeModal('shikigamiAccountsModal')">×</button>
+            </div>
+            <div id="shikigamiAccountsList"></div>
+        </div>
+    </div>
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+    <script>
+        // 数据存储管理
+        const STORAGE = {
+            ACCOUNTS: 'onmyoji_accounts',
+            SERVERS: 'onmyoji_servers',
+            SHIKIGAMI: 'onmyoji_shikigami',
+            SETTINGS: 'onmyoji_settings',
+            RECYCLE: 'onmyoji_recycle',
+            GRIND_LOG: 'onmyoji_grind_log'
+        };
+        // 默认式神列表
+        const DEFAULT_SHIKIGAMI = [
+            '阿修罗', '因幡辉夜姬', '不见岳', '须佐之男', '神堕八岐大蛇', '季', '禅心云外镜', '天照',
+            'SP大蛇', 'SP辉夜姬', 'SP花鸟卷', 'SP荒川', 'SP彼岸花', 'SP玉藻前', 'SP酒吞', 'SP鬼切'
+        ];
+        // 默认区服列表
+        const DEFAULT_SERVERS = [
+            '春之樱', '夏之蝉', '秋之枫', '冬之雪', '兰之雅', '梅之寒', '竹之幽', '菊之逸',
+            '相伴长情', '心意相通', '同心一意', '相知相依', '携手同心', '不离不弃', '永生之海'
+        ];
+        // 初始化数据
+        function initData() {
+            if (!localStorage.getItem(STORAGE.SETTINGS)) {
+                localStorage.setItem(STORAGE.SETTINGS, JSON.stringify({
+                    defaultPassword: '147258369Hh',
+                    defaultPhone: '',
+                    customTags: []
+                }));
+            }
+            if (!localStorage.getItem(STORAGE.SERVERS)) {
+                localStorage.setItem(STORAGE.SERVERS, JSON.stringify(
+                    DEFAULT_SERVERS.map((name, i) => ({ id: generateId(), name, sort: i }))
+                ));
+            }
+            if (!localStorage.getItem(STORAGE.SHIKIGAMI)) {
+                localStorage.setItem(STORAGE.SHIKIGAMI, JSON.stringify(
+                    DEFAULT_SHIKIGAMI.map(name => ({ id: generateId(), name }))
+                ));
+            }
+            if (!localStorage.getItem(STORAGE.ACCOUNTS)) {
+                localStorage.setItem(STORAGE.ACCOUNTS, JSON.stringify([]));
+            }
+            if (!localStorage.getItem(STORAGE.RECYCLE)) {
+                localStorage.setItem(STORAGE.RECYCLE, JSON.stringify([]));
+            }
+            if (!localStorage.getItem(STORAGE.GRIND_LOG)) {
+                localStorage.setItem(STORAGE.GRIND_LOG, JSON.stringify([]));
+            }
+        }
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+        function getData(key) {
+            return JSON.parse(localStorage.getItem(key) || '[]');
+        }
+        function setData(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+        function getSettings() {
+            return JSON.parse(localStorage.getItem(STORAGE.SETTINGS) || '{}');
+        }
+        // 视图切换
+        let currentView = 'home';
+        let currentServer = '';
+        let viewMode = 'list';
+        function switchView(view) {
+            currentView = view;
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+            document.getElementById(view + 'View').classList.add('active');
+            document.querySelector(`.tab-item:nth-child(${['home','accounts','grind','sales','settings'].indexOf(view)+1})`).classList.add('active');
+            
+            if (view === 'home') renderHome();
+            if (view === 'accounts') renderAccounts();
+            if (view === 'grind') renderGrind();
+            if (view === 'sales') renderSales();
+        }
+        // Toast提示
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+        // 弹窗控制
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+        // 首页渲染
+        function renderHome() {
+            const accounts = getData(STORAGE.ACCOUNTS).filter(a => !a.isSold);
+            const servers = getData(STORAGE.SERVERS);
+            
+            // 统计数据
+            document.getElementById('statTotal').textContent = accounts.length;
+            document.getElementById('statTodo').textContent = accounts.filter(a => a.level < 40).length;
+            document.getElementById('statLevel40').textContent = accounts.filter(a => a.level >= 40).length;
+            document.getElementById('statUnder40').textContent = accounts.filter(a => a.level < 40).length;
+            
+            // 区服排行
+            const serverStats = {};
+            accounts.forEach(a => {
+                if (a.level >= 40) {
+                    serverStats[a.serverId] = (serverStats[a.serverId] || 0) + 1;
+                }
+            });
+            const sortedServers = Object.entries(serverStats)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3);
+            
+            const rankClasses = ['gold', 'silver', 'bronze'];
+            document.getElementById('serverRankList').innerHTML = sortedServers.length ? 
+                sortedServers.map(([serverId, count], i) => {
+                    const server = servers.find(s => s.id === serverId);
+                    return `
+                        <div class="rank-item">
+                            <div class="rank-info">
+                                <span class="rank-num ${rankClasses[i]}">${i+1}</span>
+                                <span class="rank-name">${server ? server.name : '未知区服'}</span>
+                            </div>
+                            <span class="rank-count">${count}个</span>
+                        </div>
+                    `;
+                }).join('') : '<div class="empty-text" style="text-align:center;padding:20px;">暂无数据</div>';
+            
+            // 式神速查
+            const shikigami = getData(STORAGE.SHIKIGAMI).slice(0, 8);
+            document.getElementById('shikigamiQuick').innerHTML = shikigami.map(s => `
+                <div class="shikigami-item" onclick="showShikigamiAccounts('${s.name}')">
+                    <div class="shikigami-icon">${s.name.charAt(0)}</div>
+                    <div class="shikigami-name">${s.name}</div>
+                </div>
+            `).join('');
+        }
+        // 显示拥有某式神的账号
+        function showShikigamiAccounts(name) {
+            const accounts = getData(STORAGE.ACCOUNTS).filter(a => 
+                !a.isSold && a.shikigami && a.shikigami.includes(name)
+            );
+            document.getElementById('shikigamiAccountsTitle').textContent = `拥有【${name}】的账号 (${accounts.length}个)`;
+            document.getElementById('shikigamiAccountsList').innerHTML = accounts.length ?
+                accounts.map(a => `
+                    <div class="account-card" style="margin-bottom:8px;padding:12px;" onclick="locateAccount('${a.id}')">
+                        <div class="account-account">${a.account}</div>
+                        <div class="account-server">${getServerName(a.serverId)} · Lv.${a.level}</div>
+                    </div>
+                `).join('') : '<div class="empty-text" style="text-align:center;padding:20px;">暂无账号</div>';
+            openModal('shikigamiAccountsModal');
+        }
+        // 定位到账号
+        function locateAccount(id) {
+            closeModal('shikigamiAccountsModal');
+            switchView('accounts');
+            currentServer = '';
+            setTimeout(() => {
+                const card = document.querySelector(`.account-card[data-id="${id}"]`);
+                if (card) {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    card.classList.add('highlight');
+                }
+            }, 100);
+        }
+        // 获取区服名称
+        function getServerName(id) {
+            const servers = getData(STORAGE.SERVERS);
+            const server = servers.find(s => s.id === id);
+            return server ? server.name : '未知区服';
+        }
+        // 渲染账号列表
+        function renderAccounts() {
+            renderServerTabs();
+            filterAccounts();
+        }
+        function renderServerTabs() {
+            const servers = getData(STORAGE.SERVERS);
+            document.getElementById('serverTabs').innerHTML = `
+                <div class="server-tab ${!currentServer ? 'active' : ''}" onclick="selectServer('')">全部</div>
+                ${servers.map(s => `
+                    <div class="server-tab ${currentServer === s.id ? 'active' : ''}" onclick="selectServer('${s.id}')">${s.name}</div>
+                `).join('')}
+            `;
+        }
+        function selectServer(id) {
+            currentServer = id;
+            renderServerTabs();
+            filterAccounts();
+        }
+        function setViewMode(mode) {
+            viewMode = mode;
+            document.querySelectorAll('.view-toggle-btn').forEach((b, i) => {
+                b.classList.toggle('active', (i === 0 && mode === 'list') || (i === 1 && mode === 'grid'));
+            });
+            filterAccounts();
+        }
+        function filterAccounts() {
+            const search = document.getElementById('accountSearch').value.toLowerCase();
+            let accounts = getData(STORAGE.ACCOUNTS).filter(a => !a.isSold);
+            
+            if (currentServer) {
+                accounts = accounts.filter(a => a.serverId === currentServer);
+            }
+            if (search) {
+                accounts = accounts.filter(a => 
+                    a.account.toLowerCase().includes(search) ||
+                    getServerName(a.serverId).toLowerCase().includes(search) ||
+                    (a.shikigami && a.shikigami.some(s => s.toLowerCase().includes(search)))
+                );
+            }
+            
+            const container = document.getElementById('accountList');
+            
+            if (accounts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📦</div>
+                        <div class="empty-text">暂无账号</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            if (viewMode === 'list') {
+                container.innerHTML = accounts.map(a => `
+                    <div class="account-card" data-id="${a.id}">
+                        <div class="account-header">
+                            <div class="account-info">
+                                <div class="account-account">${a.account}</div>
+                                <div class="account-server">${getServerName(a.serverId)}</div>
+                                ${a.shikigami && a.shikigami.length ? `
+                                    <div class="account-shikigami">
+                                        ${a.shikigami.slice(0, 4).map(s => `<span class="account-shikigami-tag">${s}</span>`).join('')}
+                                        ${a.shikigami.length > 4 ? `<span class="account-shikigami-tag">+${a.shikigami.length - 4}</span>` : ''}
+                                    </div>
+                                ` : ''}
+                            </div>
+                            <span class="account-level ${a.level >= 40 ? 'success' : 'danger'}">Lv.${a.level}</span>
+                        </div>
+                        <div class="account-actions">
+                            <button class="btn btn-outline btn-sm" onclick="copyAccountInfo('${a.id}')">复制</button>
+                            <button class="btn btn-outline btn-sm" onclick="editAccount('${a.id}')">编辑</button>
+                            <button class="btn btn-success btn-sm" onclick="openSellModal('${a.id}')">出售</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteAccount('${a.id}')">删除</button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = '<div class="account-grid">' + accounts.map(a => `
+                    <div class="account-grid-card" data-id="${a.id}">
+                        <div class="account-grid-account">${a.account.substring(0, 10)}...</div>
+                        <div class="account-grid-server">${getServerName(a.serverId)}</div>
+                        <span class="account-level ${a.level >= 40 ? 'success' : 'danger'}" style="display:inline-block;">Lv.${a.level}</span>
+                    </div>
+                `).join('') + '</div>';
+            }
+        }
+        // 复制账号信息
+        function copyAccountInfo(id) {
+            const accounts = getData(STORAGE.ACCOUNTS);
+            const account = accounts.find(a => a.id === id);
+            if (account) {
+                const text = `账号：${account.account}\n密码：${account.password}\n区服：${getServerName(account.serverId)}\n等级：${account.level}`;
+                navigator.clipboard.writeText(text).then(() => showToast('已复制到剪贴板'));
+            }
+        }
+        // 打开添加账号弹窗
+        function openAddAccountModal() {
+            document.getElementById('accountModalTitle').textContent = '添加账号';
+            document.getElementById('accountForm').reset();
+            document.getElementById('editAccountId').value = '';
+            
+            const settings = getSettings();
+            document.getElementById('accountPassword').value = settings.defaultPassword || '';
+            document.getElementById('accountPhone').value = settings.defaultPhone || '';
+            
+            const servers = getData(STORAGE.SERVERS);
+            document.getElementById('accountServer').innerHTML = servers.map(s => 
+                `<option value="${s.id}">${s.name}</option>`
+            ).join('');
+            
+            openModal('accountModal');
+        }
+        // 编辑账号
+        function editAccount(id) {
+            const accounts = getData(STORAGE.ACCOUNTS);
+            const account = accounts.find(a => a.id === id);
+            if (!account) return;
+            
+            document.getElementById('accountModalTitle').textContent = '编辑账号';
+            document.getElementById('editAccountId').value = id;
+            document.getElementById('accountName').value = account.account.replace('@163.com', '');
+            document.getElementById('accountPassword').value = account.password;
+            document.getElementById('accountLevel').value = account.level;
+            document.getElementById('accountPhone').value = account.phone || '';
+            document.getElementById('accountShikigami').value = account.shikigami ? account.shikigami.join(',') : '';
+            document.getElementById('accountRemark').value = account.remark || '';
+            
+            const servers = getData(STORAGE.SERVERS);
+            document.getElementById('accountServer').innerHTML = servers.map(s => 
+                `<option value="${s.id}" ${s.id === account.serverId ? 'selected' : ''}>${s.name}</option>`
+            ).join('');
+            
+            openModal('accountModal');
+        }
+        // 账号表单提交
+        document.getElementById('accountForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('editAccountId').value;
+            let accountName = document.getElementById('accountName').value.trim();
+            if (!accountName.includes('@')) {
+                accountName += '@163.com';
+            }
+            
+            const accountData = {
+                serverId: document.getElementById('accountServer').value,
+                account: accountName,
+                password: document.getElementById('accountPassword').value,
+                level: parseInt(document.getElementById('accountLevel').value) || 1,
+                phone: document.getElementById('accountPhone').value,
+                shikigami: document.getElementById('accountShikigami').value.split(',').map(s => s.trim()).filter(s => s),
+                remark: document.getElementById('accountRemark').value,
+                updateTime: new Date().toISOString()
+            };
+            
+            const accounts = getData(STORAGE.ACCOUNTS);
+            
+            if (id) {
+                const index = accounts.findIndex(a => a.id === id);
+                if (index !== -1) {
+                    accounts[index] = { ...accounts[index], ...accountData };
+                }
+            } else {
+                accounts.push({
+                    id: generateId(),
+                    ...accountData,
+                    isSold: false,
+                    images: [],
+                    createTime: new Date().toISOString()
+                });
+            }
+            
+            setData(STORAGE.ACCOUNTS, accounts);
+            closeModal('accountModal');
+            renderAccounts();
+            renderHome();
+            showToast(id ? '已更新' : '已添加');
+        });
+        // 打开出售弹窗
+        function openSellModal(id) {
+            document.getElementById('sellAccountId').value = id;
+            document.getElementById('sellPrice').value = '';
+            openModal('sellModal');
+        }
+        // 出售表单提交
+        document.getElementById('sellForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('sellAccountId').value;
+            const price = parseFloat(document.getElementById('sellPrice').value);
+            
+            const accounts = getData(STORAGE.ACCOUNTS);
+            const index = accounts.findIndex(a => a.id === id);
+            if (index !== -1) {
+                accounts[index].isSold = true;
+                accounts[index].soldPrice = price;
+                accounts[index].soldTime = new Date().toISOString();
+                setData(STORAGE.ACCOUNTS, accounts);
+            }
+            
+            closeModal('sellModal');
+            renderAccounts();
+            renderHome();
+            renderSales();
+            showToast('已标记为已售');
+        });
+        // 删除账号
+        function deleteAccount(id) {
+            if (!confirm('确定要删除此账号吗？将移至回收站')) return;
+            
+            const accounts = getData(STORAGE.ACCOUNTS);
+            const account = accounts.find(a => a.id === id);
+            if (account) {
+                const recycle = getData(STORAGE.RECYCLE);
+                recycle.push({ ...account, deleteTime: new Date().toISOString() });
+                setData(STORAGE.RECYCLE, recycle);
+                
+                setData(STORAGE.ACCOUNTS, accounts.filter(a => a.id !== id));
+                renderAccounts();
+                renderHome();
+                showToast('已移至回收站');
+            }
+        }
+        // 刷号管理
+        function renderGrind() {
+            const today = new Date().toDateString();
+            const accounts = getData(STORAGE.ACCOUNTS).filter(a => !a.isSold && a.level < 40);
+            const grindLog = getData(STORAGE.GRIND_LOG).filter(g => new Date(g.date).toDateString() === today);
+            
+            document.getElementById('grindTodo').textContent = accounts.length;
+            document.getElementById('grindDone').textContent = grindLog.length;
+            
+            const container = document.getElementById('grindList');
+            
+            if (accounts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🎉</div>
+                        <div class="empty-text">今日刷号任务已完成！</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = accounts.map(a => {
+                const progress = Math.min((a.level / 40) * 100, 100);
+                return `
+                    <div class="grind-card">
+                        <div class="grind-info">
+                            <div class="grind-account">${a.account}</div>
+                            <div class="grind-server">${getServerName(a.serverId)}</div>
+                            <div class="grind-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${progress}%"></div>
+                                </div>
+                                <span class="progress-text">${a.level}/40</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-success btn-sm" onclick="completeGrind('${a.id}')">升级完成</button>
+                    </div>
+                `;
+            }).join('');
+        }
+        function completeGrind(id) {
+            const accounts = getData(STORAGE.ACCOUNTS);
+            const index = accounts.findIndex(a => a.id === id);
+            if (index !== -1) {
+                accounts[index].level = 40;
+                accounts[index].updateTime = new Date().toISOString();
+                setData(STORAGE.ACCOUNTS, accounts);
+                
+                const grindLog = getData(STORAGE.GRIND_LOG);
+                grindLog.push({ accountId: id, date: new Date().toISOString() });
+                setData(STORAGE.GRIND_LOG, grindLog);
+            }
+            renderGrind();
+            renderHome();
+            showToast('已标记为40级');
+        }
+        // 销售管理
+        function renderSales() {
+            const accounts = getData(STORAGE.ACCOUNTS).filter(a => a.isSold);
+            
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            
+            const todaySales = accounts.filter(a => new Date(a.soldTime) >= today);
+            const monthSales = accounts.filter(a => new Date(a.soldTime) >= monthStart);
+            
+            document.getElementById('saleToday').textContent = '¥' + todaySales.reduce((sum, a) => sum + (a.soldPrice || 0), 0);
+            document.getElementById('saleMonth').textContent = '¥' + monthSales.reduce((sum, a) => sum + (a.soldPrice || 0), 0);
+            document.getElementById('saleTotal').textContent = '¥' + accounts.reduce((sum, a) => sum + (a.soldPrice || 0), 0);
+            
+            filterSales();
+        }
+        function filterSales() {
+            let accounts = getData(STORAGE.ACCOUNTS).filter(a => a.isSold);
+            
+            const startDate = document.getElementById('saleStartDate').value;
+            const endDate = document.getElementById('saleEndDate').value;
+            
+            if (startDate) {
+                accounts = accounts.filter(a => new Date(a.soldTime) >= new Date(startDate));
+            }
+            if (endDate) {
+                accounts = accounts.filter(a => new Date(a.soldTime) <= new Date(endDate + 'T23:59:59'));
+            }
+            
+            accounts.sort((a, b) => new Date(b.soldTime) - new Date(a.soldTime));
+            
+            document.getElementById('saleList').innerHTML = accounts.length ?
+                accounts.map(a => `
+                    <div class="sale-item">
+                        <div class="sale-info">
+                            <div class="sale-account">${a.account}</div>
+                            <div class="sale-time">${getServerName(a.serverId)} · ${new Date(a.soldTime).toLocaleDateString()}</div>
+                        </div>
+                        <div class="sale-price">¥${a.soldPrice || 0}</div>
+                    </div>
+                `).join('') : '<div class="empty-text" style="text-align:center;padding:20px;">暂无销售记录</div>';
+        }
+        function exportSales(format) {
+            const accounts = getData(STORAGE.ACCOUNTS).filter(a => a.isSold);
+            let content, filename, type;
+            
+            if (format === 'txt') {
+                content = accounts.map(a => 
+                    `${a.account}\t${getServerName(a.serverId)}\t¥${a.soldPrice}\t${new Date(a.soldTime).toLocaleDateString()}`
+                ).join('\n');
+                filename = 'sales.txt';
+                type = 'text/plain';
+            } else {
+                content = JSON.stringify(accounts, null, 2);
+                filename = 'sales.json';
+                type = 'application/json';
+            }
+            
+            downloadFile(content, filename, type);
+        }
+        // 设置相关
+        function openDefaultSettings() {
+            const settings = getSettings();
+            document.getElementById('defaultPassword').value = settings.defaultPassword || '';
+            document.getElementById('defaultPhone').value = settings.defaultPhone || '';
+            openModal('defaultModal');
+        }
+        document.getElementById('defaultForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const settings = getSettings();
+            settings.defaultPassword = document.getElementById('defaultPassword').value;
+            settings.defaultPhone = document.getElementById('defaultPhone').value;
+            localStorage.setItem(STORAGE.SETTINGS, JSON.stringify(settings));
+            closeModal('defaultModal');
+            showToast('已保存');
+        });
+        function openServerManage() {
+            renderServerManageList();
+            openModal('serverModal');
+        }
+        function renderServerManageList() {
+            const servers = getData(STORAGE.SERVERS);
+            document.getElementById('serverManageList').innerHTML = servers.map(s => `
+                <div class="recycle-item">
+                    <div class="recycle-info">
+                        <div class="recycle-account">${s.name}</div>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="deleteServer('${s.id}')">删除</button>
+                </div>
+            `).join('');
+        }
+        function addServer() {
+            const name = document.getElementById('newServerName').value.trim();
+            if (!name) return;
+            
+            const servers = getData(STORAGE.SERVERS);
+            servers.push({ id: generateId(), name, sort: servers.length });
+            setData(STORAGE.SERVERS, servers);
+            document.getElementById('newServerName').value = '';
+            renderServerManageList();
+            showToast('已添加');
+        }
+        function deleteServer(id) {
+            if (!confirm('确定删除此区服吗？')) return;
+            const servers = getData(STORAGE.SERVERS).filter(s => s.id !== id);
+            setData(STORAGE.SERVERS, servers);
+            renderServerManageList();
+        }
+        function openShikigamiManage() {
+            renderShikigamiManageList();
+            openModal('shikigamiModal');
+        }
+        function renderShikigamiManageList() {
+            const shikigami = getData(STORAGE.SHIKIGAMI);
+            document.getElementById('shikigamiManageList').innerHTML = shikigami.map(s => `
+                <div class="recycle-item">
+                    <div class="recycle-info">
+                        <div class="recycle-account">${s.name}</div>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="deleteShikigami('${s.id}')">删除</button>
+                </div>
+            `).join('');
+        }
+        function addShikigami() {
+            const name = document.getElementById('newShikigamiName').value.trim();
+            if (!name) return;
+            
+            const shikigami = getData(STORAGE.SHIKIGAMI);
+            shikigami.push({ id: generateId(), name });
+            setData(STORAGE.SHIKIGAMI, shikigami);
+            document.getElementById('newShikigamiName').value = '';
+            renderShikigamiManageList();
+            showToast('已添加');
+        }
+        function deleteShikigami(id) {
+            if (!confirm('确定删除此式神吗？')) return;
+            const shikigami = getData(STORAGE.SHIKIGAMI).filter(s => s.id !== id);
+            setData(STORAGE.SHIKIGAMI, shikigami);
+            renderShikigamiManageList();
+        }
+        function openRecycleBin() {
+            renderRecycleList();
+            openModal('recycleModal');
+        }
+        function renderRecycleList() {
+            const recycle = getData(STORAGE.RECYCLE);
+            document.getElementById('recycleList').innerHTML = recycle.length ?
+                recycle.map(a => `
+                    <div class="recycle-item">
+                        <div class="recycle-info">
+                            <div class="recycle-account">${a.account}</div>
+                            <div class="recycle-time">删除于 ${new Date(a.deleteTime).toLocaleDateString()}</div>
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <button class="btn btn-success btn-sm" onclick="restoreAccount('${a.id}')">恢复</button>
+                            <button class="btn btn-danger btn-sm" onclick="permanentDelete('${a.id}')">永久删除</button>
+                        </div>
+                    </div>
+                `).join('') : '<div class="empty-text" style="text-align:center;padding:20px;">回收站为空</div>';
+        }
+        function restoreAccount(id) {
+            const recycle = getData(STORAGE.RECYCLE);
+            const account = recycle.find(a => a.id === id);
+            if (account) {
+                const accounts = getData(STORAGE.ACCOUNTS);
+                delete account.deleteTime;
+                accounts.push(account);
+                setData(STORAGE.ACCOUNTS, accounts);
+                setData(STORAGE.RECYCLE, recycle.filter(a => a.id !== id));
+                renderRecycleList();
+                renderAccounts();
+                showToast('已恢复');
+            }
+        }
+        function permanentDelete(id) {
+            if (!confirm('确定永久删除吗？此操作不可恢复！')) return;
+            const recycle = getData(STORAGE.RECYCLE).filter(a => a.id !== id);
+            setData(STORAGE.RECYCLE, recycle);
+            renderRecycleList();
+            showToast('已永久删除');
+        }
+        function openDataCenter() {
+            showToast('数据统计中心开发中...');
+        }
+        function exportData() {
+            const data = {
+                accounts: getData(STORAGE.ACCOUNTS),
+                servers: getData(STORAGE.SERVERS),
+                shikigami: getData(STORAGE.SHIKIGAMI),
+                settings: getSettings(),
+                recycle: getData(STORAGE.RECYCLE)
+            };
+            downloadFile(JSON.stringify(data, null, 2), 'onmyoji-backup.json', 'application/json');
+            showToast('已导出备份文件');
+        }
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.accounts) localStorage.setItem(STORAGE.ACCOUNTS, JSON.stringify(data.accounts));
+                    if (data.servers) localStorage.setItem(STORAGE.SERVERS, JSON.stringify(data.servers));
+                    if (data.shikigami) localStorage.setItem(STORAGE.SHIKIGAMI, JSON.stringify(data.shikigami));
+                    if (data.settings) localStorage.setItem(STORAGE.SETTINGS, JSON.stringify(data.settings));
+                    if (data.recycle) localStorage.setItem(STORAGE.RECYCLE, JSON.stringify(data.recycle));
+                    showToast('数据导入成功');
+                    renderHome();
+                    renderAccounts();
+                } catch (err) {
+                    showToast('导入失败：文件格式错误');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+        function clearAllData() {
+            if (!confirm('确定要清空所有数据吗？此操作不可恢复！')) return;
+            if (!confirm('再次确认：所有账号、区服、设置都将被清空！')) return;
+            
+            localStorage.removeItem(STORAGE.ACCOUNTS);
+            localStorage.removeItem(STORAGE.SERVERS);
+            localStorage.removeItem(STORAGE.SHIKIGAMI);
+            localStorage.removeItem(STORAGE.SETTINGS);
+            localStorage.removeItem(STORAGE.RECYCLE);
+            localStorage.removeItem(STORAGE.GRIND_LOG);
+            
+            initData();
+            renderHome();
+            renderAccounts();
+            showToast('已清空所有数据');
+        }
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        function toggleFilter() {
+            showToast('筛选功能开发中...');
+        }
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initData();
+            renderHome();
+            
+            // 设置默认日期
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('saleEndDate').value = today;
+        });
+    </script>
 </body>
 </html>
