@@ -22,7 +22,8 @@
             --ios-green: #34C759;
             --ios-red: #FF3B30;
             --ios-orange: #FF9500;
-            --ios-gray: #C7C7CC;
+            --ios-gray: #E5E5EA;
+            --ios-gray-dark: #C7C7CC;
             --ios-separator: #C6C6C8;
             --ios-radius: 16px;
             --ios-radius-lg: 20px;
@@ -35,6 +36,7 @@
             overflow-x: hidden;
             padding-bottom: 83px;
             padding-bottom: calc(83px + env(safe-area-inset-bottom));
+            line-height: 1.4;
         }
         .container {
             max-width: 100%;
@@ -45,9 +47,9 @@
             background: var(--ios-bg);
         }
         .glass {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
         }
         .view {
             display: none;
@@ -62,38 +64,40 @@
             to { opacity: 1; transform: translateX(0); }
         }
         .ios-title {
-            font-size: 34px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            margin-bottom: 16px;
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.8px;
+            margin-bottom: 20px;
             padding: 0 4px;
+            line-height: 1.1;
         }
         .ios-card {
             background: var(--ios-card);
             border-radius: var(--ios-radius);
-            padding: 16px;
-            margin-bottom: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            padding: 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
         }
         .ios-group {
             background: var(--ios-card);
             border-radius: var(--ios-radius);
             overflow: hidden;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
         }
         .ios-group-title {
             font-size: 13px;
             font-weight: 600;
             color: var(--ios-text-secondary);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 8px 16px;
+            letter-spacing: 0.8px;
+            padding: 10px 16px 6px;
         }
         .ios-item {
             display: flex;
             align-items: center;
-            padding: 14px 16px;
-            border-bottom: 1px solid var(--ios-separator);
+            padding: 16px;
+            border-bottom: 0.5px solid var(--ios-gray);
             cursor: pointer;
             transition: background 0.2s;
         }
@@ -108,40 +112,46 @@
         }
         .ios-item-title {
             font-size: 17px;
-            font-weight: 400;
+            font-weight: 500;
         }
         .ios-item-subtitle {
             font-size: 14px;
             color: var(--ios-text-secondary);
-            margin-top: 2px;
+            margin-top: 3px;
         }
         .ios-item-value {
-            font-size: 17px;
+            font-size: 16px;
             color: var(--ios-text-secondary);
-            margin-right: 8px;
+            margin-right: 10px;
+            font-weight: 500;
         }
         .ios-item-arrow {
-            color: var(--ios-gray);
-            font-size: 14px;
+            color: var(--ios-gray-dark);
+            font-size: 16px;
+            font-weight: 400;
         }
         .ios-stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 12px;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
         }
         .ios-stat-card {
             background: var(--ios-card);
             border-radius: var(--ios-radius);
-            padding: 20px 16px;
+            padding: 22px 16px;
             text-align: center;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s;
+        }
+        .ios-stat-card:active {
+            transform: scale(0.98);
         }
         .ios-stat-value {
-            font-size: 34px;
-            font-weight: 700;
+            font-size: 36px;
+            font-weight: 800;
             line-height: 1;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
         .ios-stat-value.blue { color: var(--ios-blue); }
         .ios-stat-value.green { color: var(--ios-green); }
@@ -149,20 +159,22 @@
         .ios-stat-label {
             font-size: 13px;
             color: var(--ios-text-secondary);
-            font-weight: 500;
+            font-weight: 600;
+            letter-spacing: 0.2px;
         }
         .ios-btn {
             padding: 14px 24px;
             border-radius: 12px;
             border: none;
-            font-size: 17px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: opacity 0.2s, transform 0.1s;
+            transition: all 0.2s;
+            letter-spacing: 0.2px;
         }
         .ios-btn:active {
             opacity: 0.7;
-            transform: scale(0.98);
+            transform: scale(0.97);
         }
         .ios-btn-primary {
             background: var(--ios-blue);
@@ -180,24 +192,29 @@
             background: var(--ios-gray);
             color: var(--ios-text);
         }
+        .ios-btn-orange {
+            background: var(--ios-orange);
+            color: white;
+        }
         .ios-btn-sm {
-            padding: 8px 16px;
+            padding: 8px 14px;
             font-size: 14px;
-            border-radius: 8px;
+            border-radius: 10px;
+            font-weight: 600;
         }
         .ios-tab-bar {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
             display: flex;
             justify-content: space-around;
-            padding: 8px 0;
-            padding-bottom: calc(8px + env(safe-area-inset-bottom));
-            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 10px 0;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom));
+            border-top: 0.5px solid rgba(0, 0, 0, 0.08);
             z-index: 100;
         }
         .ios-tab-item {
@@ -216,30 +233,33 @@
             color: var(--ios-blue);
         }
         .ios-tab-icon {
-            font-size: 24px;
+            font-size: 26px;
         }
         .ios-tab-label {
             font-size: 11px;
-            font-weight: 500;
+            font-weight: 600;
+            letter-spacing: 0.2px;
         }
         .ios-form-group {
-            margin-bottom: 16px;
+            margin-bottom: 18px;
         }
         .ios-form-label {
             display: block;
             font-size: 13px;
             color: var(--ios-text-secondary);
-            margin-bottom: 6px;
-            font-weight: 500;
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
         }
         .ios-form-input {
             width: 100%;
             padding: 14px 16px;
             border: 1px solid var(--ios-gray);
             border-radius: 12px;
-            font-size: 17px;
+            font-size: 16px;
             background: var(--ios-card);
             outline: none;
+            transition: border-color 0.2s;
         }
         .ios-form-input:focus {
             border-color: var(--ios-blue);
@@ -249,7 +269,7 @@
             padding: 14px 16px;
             border: 1px solid var(--ios-gray);
             border-radius: 12px;
-            font-size: 17px;
+            font-size: 16px;
             background: var(--ios-card);
             outline: none;
             appearance: none;
@@ -266,7 +286,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.45);
             display: none;
             align-items: flex-end;
             justify-content: center;
@@ -279,11 +299,11 @@
         .ios-modal-content {
             background: var(--ios-card);
             width: 100%;
-            max-height: 90vh;
+            max-height: 88vh;
             border-radius: var(--ios-radius-lg) var(--ios-radius-lg) 0 0;
             padding: 20px;
             overflow-y: auto;
-            animation: iosSheet 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            animation: iosSheet 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
         @keyframes iosSheet {
             from { transform: translateY(100%); }
@@ -293,26 +313,30 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
         .ios-modal-title {
             font-size: 20px;
-            font-weight: 600;
+            font-weight: 700;
         }
         .ios-modal-close {
             width: 36px;
             height: 36px;
             border-radius: 50%;
             border: none;
-            background: var(--ios-bg);
+            background: var(--ios-gray);
             cursor: pointer;
             font-size: 18px;
             color: var(--ios-text-secondary);
+            transition: background 0.2s;
+        }
+        .ios-modal-close:active {
+            background: var(--ios-gray-dark);
         }
         .ios-modal-footer {
             display: flex;
             gap: 12px;
-            margin-top: 24px;
+            margin-top: 28px;
         }
         .ios-modal-footer .ios-btn {
             flex: 1;
@@ -322,7 +346,7 @@
             align-items: center;
             justify-content: space-between;
             padding: 10px 4px;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
             position: relative;
         }
         .ios-nav-back {
@@ -331,6 +355,7 @@
             background: none;
             color: var(--ios-blue);
             font-size: 17px;
+            font-weight: 500;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -338,7 +363,7 @@
         }
         .ios-nav-title {
             font-size: 17px;
-            font-weight: 600;
+            font-weight: 700;
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
@@ -349,23 +374,27 @@
         .account-card {
             background: var(--ios-card);
             border-radius: var(--ios-radius);
-            padding: 16px;
-            margin-bottom: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            padding: 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s;
+        }
+        .account-card:active {
+            transform: scale(0.99);
         }
         .account-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
         .account-info {
             flex: 1;
         }
         .account-name {
             font-size: 17px;
-            font-weight: 600;
-            margin-bottom: 4px;
+            font-weight: 700;
+            margin-bottom: 5px;
             word-break: break-all;
         }
         .account-meta {
@@ -375,53 +404,55 @@
         .account-level {
             display: inline-flex;
             align-items: center;
-            padding: 4px 12px;
+            padding: 5px 14px;
             border-radius: 20px;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 700;
         }
         .account-level.green {
-            background: rgba(52, 199, 89, 0.1);
+            background: rgba(52, 199, 89, 0.12);
             color: var(--ios-green);
         }
         .account-level.red {
-            background: rgba(255, 59, 48, 0.1);
+            background: rgba(255, 59, 48, 0.12);
             color: var(--ios-red);
         }
         .account-actions {
             display: flex;
             gap: 8px;
-            margin-top: 12px;
+            margin-top: 14px;
             justify-content: flex-end;
+            flex-wrap: wrap;
         }
         .account-shikigami {
             display: flex;
             gap: 6px;
             flex-wrap: wrap;
-            margin-top: 8px;
+            margin-top: 10px;
         }
         .account-shikigami-tag {
-            padding: 3px 10px;
+            padding: 4px 12px;
             background: var(--ios-bg);
-            border-radius: 12px;
+            border-radius: 14px;
             font-size: 12px;
             color: var(--ios-text-secondary);
+            font-weight: 500;
         }
         .view-toggle {
             display: flex;
-            background: var(--ios-bg);
+            background: var(--ios-gray);
             border-radius: 10px;
             padding: 4px;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
         }
         .view-toggle-btn {
             flex: 1;
-            padding: 8px;
+            padding: 10px;
             border: none;
             background: transparent;
             border-radius: 8px;
             font-size: 15px;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
             color: var(--ios-text-secondary);
@@ -429,7 +460,7 @@
         .view-toggle-btn.active {
             background: white;
             color: var(--ios-text);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
         }
         .account-grid {
             display: grid;
@@ -439,37 +470,45 @@
         .account-grid-card {
             background: var(--ios-card);
             border-radius: var(--ios-radius);
-            padding: 14px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s;
+        }
+        .account-grid-card:active {
+            transform: scale(0.98);
         }
         .account-grid-name {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 6px;
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 8px;
             word-break: break-all;
+            line-height: 1.2;
         }
         .account-grid-meta {
             font-size: 12px;
             color: var(--ios-text-secondary);
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
         .grind-card {
             background: var(--ios-card);
             border-radius: var(--ios-radius);
-            padding: 16px;
-            margin-bottom: 12px;
+            padding: 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+        }
+        .grind-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            align-items: flex-start;
+            margin-bottom: 12px;
         }
         .grind-info {
             flex: 1;
         }
         .grind-name {
             font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 4px;
+            font-weight: 700;
+            margin-bottom: 5px;
         }
         .grind-server {
             font-size: 13px;
@@ -478,53 +517,61 @@
         .grind-progress {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-top: 10px;
+            gap: 12px;
+            margin-bottom: 14px;
         }
         .progress-bar {
             flex: 1;
-            height: 6px;
-            background: var(--ios-bg);
-            border-radius: 3px;
+            height: 7px;
+            background: var(--ios-gray);
+            border-radius: 4px;
             overflow: hidden;
         }
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, var(--ios-green), #5CDB7D);
-            border-radius: 3px;
+            border-radius: 4px;
             transition: width 0.3s;
         }
         .progress-text {
-            font-size: 13px;
-            font-weight: 600;
+            font-size: 14px;
+            font-weight: 700;
             color: var(--ios-green);
-            min-width: 45px;
+            min-width: 50px;
             text-align: right;
         }
+        .grind-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
         .search-bar {
-            margin-bottom: 16px;
+            margin-bottom: 18px;
         }
         .search-input {
             width: 100%;
-            padding: 12px 16px;
+            padding: 14px 18px;
             border: none;
             border-radius: 12px;
-            font-size: 17px;
+            font-size: 16px;
             background: var(--ios-card);
             outline: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         }
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
+            padding: 70px 20px;
         }
         .empty-icon {
-            font-size: 64px;
-            margin-bottom: 16px;
-            opacity: 0.4;
+            font-size: 68px;
+            margin-bottom: 18px;
+            opacity: 0.35;
         }
         .empty-text {
             font-size: 16px;
             color: var(--ios-text-secondary);
+            font-weight: 500;
         }
         .toast {
             position: fixed;
@@ -533,9 +580,10 @@
             transform: translate(-50%, -50%);
             background: rgba(0, 0, 0, 0.85);
             color: white;
-            padding: 14px 28px;
-            border-radius: 12px;
+            padding: 16px 32px;
+            border-radius: 14px;
             font-size: 15px;
+            font-weight: 500;
             z-index: 2000;
             opacity: 0;
             pointer-events: none;
@@ -545,16 +593,17 @@
             opacity: 1;
         }
         .shikigami-icon {
-            width: 44px;
-            height: 44px;
+            width: 46px;
+            height: 46px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--ios-blue), #5856D6);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 19px;
             color: white;
             overflow: hidden;
+            font-weight: 600;
         }
         .shikigami-icon img {
             width: 100%;
@@ -564,32 +613,33 @@
         .shikigami-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
+            gap: 14px;
         }
         .shikigami-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             cursor: pointer;
-            padding: 8px;
-            border-radius: 12px;
+            padding: 10px 6px;
+            border-radius: 14px;
             transition: background 0.2s;
         }
         .shikigami-item:active {
-            background: var(--ios-bg);
+            background: var(--ios-gray);
         }
         .shikigami-name {
             font-size: 12px;
             color: var(--ios-text-secondary);
             text-align: center;
+            font-weight: 500;
         }
         .rank-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--ios-bg);
+            padding: 14px 0;
+            border-bottom: 0.5px solid var(--ios-gray);
         }
         .rank-item:last-child {
             border-bottom: none;
@@ -597,17 +647,17 @@
         .rank-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
         .rank-num {
-            width: 28px;
-            height: 28px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 13px;
-            font-weight: 700;
+            font-size: 14px;
+            font-weight: 800;
             color: white;
         }
         .rank-num.gold { background: linear-gradient(135deg, #FFD700, #FFA500); }
@@ -615,36 +665,41 @@
         .rank-num.bronze { background: linear-gradient(135deg, #CD7F32, #B87333); }
         .rank-name {
             font-size: 16px;
-            font-weight: 500;
+            font-weight: 600;
         }
         .rank-count {
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--ios-green);
         }
         .fab {
             position: fixed;
-            bottom: 100px;
-            bottom: calc(100px + env(safe-area-inset-bottom));
+            bottom: 105px;
+            bottom: calc(105px + env(safe-area-inset-bottom));
             right: 20px;
-            width: 56px;
-            height: 56px;
+            width: 58px;
+            height: 58px;
             border-radius: 50%;
             background: var(--ios-blue);
             color: white;
             border: none;
-            font-size: 28px;
-            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+            font-size: 30px;
+            font-weight: 300;
+            box-shadow: 0 6px 20px rgba(0, 122, 255, 0.35);
             cursor: pointer;
             z-index: 50;
+            transition: transform 0.2s;
+        }
+        .fab:active {
+            transform: scale(0.93);
         }
         .hidden-input {
             display: none;
         }
         .image-preview {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
+            width: 62px;
+            height: 62px;
+            border-radius: 14px;
             object-fit: cover;
             border: 2px solid var(--ios-gray);
             cursor: pointer;
@@ -654,11 +709,16 @@
             gap: 8px;
         }
         .server-action-btn {
-            padding: 6px 12px;
+            padding: 7px 14px;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 13px;
             cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+        .server-action-btn:active {
+            opacity: 0.7;
         }
     </style>
 </head>
@@ -686,11 +746,11 @@
                 </div>
             </div>
             <div class="ios-card">
-                <div style="font-size:19px;font-weight:700;margin-bottom:12px;">🏆 区服库存排行 Top3</div>
+                <div style="font-size:19px;font-weight:700;margin-bottom:14px;">🏆 区服库存排行 Top3</div>
                 <div id="serverRankList"></div>
             </div>
             <div class="ios-card">
-                <div style="font-size:19px;font-weight:700;margin-bottom:12px;">🎭 式神速查</div>
+                <div style="font-size:19px;font-weight:700;margin-bottom:14px;">🎭 式神速查</div>
                 <div class="shikigami-grid" id="shikigamiQuick"></div>
             </div>
         </section>
@@ -745,12 +805,12 @@
                     <div class="ios-stat-label">累计销售额</div>
                 </div>
             </div>
-            <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+            <div style="display: flex; gap: 12px; margin-bottom: 18px;">
                 <button class="ios-btn ios-btn-gray ios-btn-sm" style="flex:1" onclick="exportSales('txt')">导出TXT</button>
                 <button class="ios-btn ios-btn-gray ios-btn-sm" style="flex:1" onclick="exportSales('json')">导出JSON</button>
             </div>
             <div class="ios-card">
-                <div style="font-size:19px;font-weight:700;margin-bottom:12px;">📋 销售记录</div>
+                <div style="font-size:19px;font-weight:700;margin-bottom:14px;">📋 销售记录</div>
                 <div id="saleList"></div>
             </div>
         </section>
@@ -885,7 +945,7 @@
                             <option value="">选择手机号</option>
                             <option value="__manual__">手动输入</option>
                         </select>
-                        <input type="text" class="ios-form-input" id="accountPhoneManual" style="display:none;margin-top:8px;" placeholder="输入手机号">
+                        <input type="text" class="ios-form-input" id="accountPhoneManual" style="display:none;margin-top:10px;" placeholder="输入手机号">
                     </div>
                 </div>
                 <div class="ios-form-group">
@@ -951,14 +1011,14 @@
                 <button class="ios-modal-close" onclick="closeModal('shikigamiModal')">×</button>
             </div>
             <div class="ios-form-group">
-                <div style="display: flex; gap: 8px; align-items: flex-end;">
+                <div style="display: flex; gap: 10px; align-items: flex-end;">
                     <div style="flex:1;">
                         <label class="ios-form-label">新式神名称</label>
                         <input type="text" class="ios-form-input" id="newShikigamiName" placeholder="式神名称">
                     </div>
                     <div>
                         <label class="ios-form-label">图标</label>
-                        <div style="display:flex;gap:8px;align-items:center;">
+                        <div style="display:flex;gap:10px;align-items:center;">
                             <img id="newShikigamiIconPreview" class="image-preview" onclick="document.getElementById('newShikigamiIcon').click()" src="" style="display:none;">
                             <button type="button" class="ios-btn ios-btn-primary ios-btn-sm" onclick="document.getElementById('newShikigamiIcon').click()">上传</button>
                             <input type="file" id="newShikigamiIcon" class="hidden-input" accept="image/*" onchange="previewNewIcon(event)">
@@ -984,7 +1044,7 @@
                 </div>
                 <div class="ios-form-group">
                     <label class="ios-form-label">式神图标</label>
-                    <div style="display:flex;gap:12px;align-items:center;">
+                    <div style="display:flex;gap:14px;align-items:center;">
                         <img id="editShikigamiIconPreview" class="image-preview" onclick="document.getElementById('editShikigamiIcon').click()">
                         <button type="button" class="ios-btn ios-btn-gray ios-btn-sm" onclick="document.getElementById('editShikigamiIcon').click()">更换图标</button>
                         <input type="file" id="editShikigamiIcon" class="hidden-input" accept="image/*" onchange="previewEditIcon(event)">
@@ -1211,11 +1271,26 @@
                         <span class="ios-item-value">${count}个账号</span>
                         <div class="server-actions" onclick="event.stopPropagation();">
                             <button class="server-action-btn" style="background:var(--ios-blue);color:white;" onclick="editServer('${s.id}')">编辑</button>
+                            <button class="server-action-btn" style="background:var(--ios-red);color:white;" onclick="deleteServer('${s.id}')">删除</button>
                         </div>
                         <span class="ios-item-arrow">›</span>
                     </div>
                 `;
             }).join('');
+        }
+        function deleteServer(id) {
+            event.stopPropagation();
+            if (!confirm('删除区服将同时删除该服下所有账号，确定继续？')) return;
+            
+            const servers = getData(STORAGE.SERVERS).filter(s => s.id !== id);
+            setData(STORAGE.SERVERS, servers);
+            
+            const accounts = getData(STORAGE.ACCOUNTS).filter(a => a.serverId !== id);
+            setData(STORAGE.ACCOUNTS, accounts);
+            
+            renderServerList();
+            renderHome();
+            showToast('已删除区服及相关账号');
         }
         function enterServer(id) {
             selectedServerId = id;
@@ -1238,6 +1313,7 @@
             openModal('serverModal');
         }
         function editServer(id) {
+            event.stopPropagation();
             const servers = getData(STORAGE.SERVERS);
             const server = servers.find(s => s.id === id);
             if (!server) return;
@@ -1480,12 +1556,15 @@
             const accounts = getData(STORAGE.ACCOUNTS).filter(a => !a.isSold && a.level < 40);
             const grindLog = getData(STORAGE.GRIND_LOG).filter(g => new Date(g.date).toDateString() === today);
             
-            document.getElementById('grindTodo').textContent = accounts.length;
+            const grindedIds = grindLog.map(g => g.accountId);
+            const pendingAccounts = accounts.filter(a => !grindedIds.includes(a.id));
+            
+            document.getElementById('grindTodo').textContent = pendingAccounts.length;
             document.getElementById('grindDone').textContent = grindLog.length;
             
             const container = document.getElementById('grindList');
             
-            if (accounts.length === 0) {
+            if (pendingAccounts.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-icon">🎉</div>
@@ -1495,40 +1574,52 @@
                 return;
             }
             
-            container.innerHTML = accounts.map(a => {
+            container.innerHTML = pendingAccounts.map(a => {
                 const progress = Math.min((a.level / 40) * 100, 100);
                 return `
                     <div class="grind-card">
-                        <div class="grind-info">
-                            <div class="grind-name">${a.account}</div>
-                            <div class="grind-server">${getServerName(a.serverId)}</div>
-                            <div class="grind-progress">
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: ${progress}%"></div>
-                                </div>
-                                <span class="progress-text">${a.level}/40</span>
+                        <div class="grind-header">
+                            <div class="grind-info">
+                                <div class="grind-name">${a.account}</div>
+                                <div class="grind-server">${getServerName(a.serverId)}</div>
                             </div>
                         </div>
-                        <button class="ios-btn ios-btn-success ios-btn-sm" onclick="completeGrind('${a.id}')">完成</button>
+                        <div class="grind-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progress}%"></div>
+                            </div>
+                            <span class="progress-text">${a.level}/40</span>
+                        </div>
+                        <div class="grind-actions">
+                            <button class="ios-btn ios-btn-orange ios-btn-sm" onclick="levelUp('${a.id}')">+1级</button>
+                            <button class="ios-btn ios-btn-success ios-btn-sm" onclick="markDone('${a.id}')">今日完成</button>
+                        </div>
                     </div>
                 `;
             }).join('');
         }
-        function completeGrind(id) {
+        function levelUp(id) {
             const accounts = getData(STORAGE.ACCOUNTS);
             const index = accounts.findIndex(a => a.id === id);
             if (index !== -1) {
-                accounts[index].level = 40;
+                accounts[index].level = Math.min(accounts[index].level + 1, 60);
                 accounts[index].updateTime = new Date().toISOString();
                 setData(STORAGE.ACCOUNTS, accounts);
                 
                 const grindLog = getData(STORAGE.GRIND_LOG);
-                grindLog.push({ accountId: id, date: new Date().toISOString() });
+                grindLog.push({ accountId: id, date: new Date().toISOString(), type: 'levelup' });
                 setData(STORAGE.GRIND_LOG, grindLog);
             }
             renderGrind();
             renderHome();
-            showToast('已标记为40级');
+            showToast('等级+1');
+        }
+        function markDone(id) {
+            const grindLog = getData(STORAGE.GRIND_LOG);
+            grindLog.push({ accountId: id, date: new Date().toISOString(), type: 'done' });
+            setData(STORAGE.GRIND_LOG, grindLog);
+            renderGrind();
+            showToast('已标记今日完成');
         }
         function renderSales() {
             const accounts = getData(STORAGE.ACCOUNTS).filter(a => a.isSold);
@@ -1552,7 +1643,7 @@
                             <div class="ios-item-title">${a.account}</div>
                             <div class="ios-item-subtitle">${getServerName(a.serverId)} · ${new Date(a.soldTime).toLocaleDateString()}</div>
                         </div>
-                        <span class="ios-item-value" style="color: var(--ios-green); font-weight: 600;">¥${a.soldPrice || 0}</span>
+                        <span class="ios-item-value" style="color: var(--ios-green); font-weight: 700;">¥${a.soldPrice || 0}</span>
                     </div>
                 `).join('') : '<div class="empty-text" style="text-align:center;padding:20px;">暂无销售记录</div>';
         }
@@ -1599,8 +1690,8 @@
             const shikigami = getData(STORAGE.SHIKIGAMI);
             document.getElementById('shikigamiManageList').innerHTML = shikigami.map(s => `
                 <div class="ios-item">
-                    <div class="ios-item-content" style="display:flex;align-items:center;gap:12px;">
-                        <div class="shikigami-icon" style="width:36px;height:36px;font-size:14px;">
+                    <div class="ios-item-content" style="display:flex;align-items:center;gap:14px;">
+                        <div class="shikigami-icon" style="width:38px;height:38px;font-size:15px;">
                             ${s.icon ? `<img src="${s.icon}">` : s.name.charAt(0)}
                         </div>
                         <span>${s.name}</span>
@@ -1661,7 +1752,7 @@
             document.getElementById('editShikigamiId').value = id;
             document.getElementById('editShikigamiName').value = s.name;
             editShikigamiIconData = s.icon || '';
-            document.getElementById('editShikigamiIconPreview').src = s.icon || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60"><rect fill="%23007AFF" width="60" height="60"/></svg>';
+            document.getElementById('editShikigamiIconPreview').src = s.icon || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="62" height="62"><rect fill="%23007AFF" width="62" height="62"/></svg>';
             
             openModal('editShikigamiModal');
         }
